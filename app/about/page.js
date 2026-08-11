@@ -8,9 +8,8 @@ export default function AboutPage() {
     <>
       <Header />
       <div 
-        className="bg-light" 
+        className="bg-light flex-grow-1" 
         style={{ 
-          minHeight: "calc(100vh - 90px)", 
           paddingTop: "120px", 
           paddingBottom: "80px",
           background: "linear-gradient(135deg, #f8f9fc 0%, #f1f3f9 100%)" 

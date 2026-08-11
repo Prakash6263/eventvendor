@@ -41,17 +41,20 @@ a.btn[style*="color: white"]:focus {
 /* Fix Vendor Dashboard Layout Container Stretch */
 .wrapper,
 .event-dt-block,
+.user-profile-wrapper,
 .hero-banner {
   overflow: visible !important;
 }
 
 @media (min-width: 992px) {
-  .event-dt-block .container > .row {
+  .event-dt-block .container > .row,
+  .user-profile-wrapper .container > .row {
     display: flex !important;
     align-items: flex-start !important;
   }
 
-  .event-dt-block .col-lg-3 {
+  .event-dt-block .col-lg-3,
+  .user-profile-wrapper .col-lg-3 {
     position: sticky !important;
     top: 90px !important;
     z-index: 10 !important;

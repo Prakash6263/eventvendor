@@ -9,6 +9,7 @@ const routeLinks = new Set([
   "/", "/vendor-profile", "/all-events", "/reservation-list",
   "/vendor-event-details", "/vendor-reservation-details", "/notifications",
   "/change-password", "/chat", "/login", "/signup", "/verification", "/reset-password",
+  "/about", "/privacy", "/terms"
 ]);
 
 export default function VendorHtmlPage({ markup }) {
@@ -93,7 +94,8 @@ export default function VendorHtmlPage({ markup }) {
             const containers = document.querySelectorAll(".content-card .row.g-3, .upcoming-events-grid");
             if (containers && containers.length > 0) {
               containers.forEach((container) => {
-                container.innerHTML = upcomingEvents.map((event, idx) => {
+                const listToRender = path === "/" ? upcomingEvents.slice(0, 3) : upcomingEvents;
+                container.innerHTML = listToRender.map((event, idx) => {
                   const fallbackImg = defaultImgs[idx % defaultImgs.length];
                   const eventImg = (event.image && event.image.startsWith("http")) ? event.image : fallbackImg;
                   const locationAddress = event.serviceLocationId?.address || event.serviceLocationId?.addressName || "Location not specified";
@@ -345,7 +347,7 @@ export default function VendorHtmlPage({ markup }) {
             const overviewContainer = overviewCard.querySelector(".d-flex.flex-column") ||
                                       overviewCard.querySelector('[class*="flex-column"]');
             if (overviewContainer) {
-              overviewContainer.innerHTML = data.slice(0, 5).map((item, idx) => buildListItemHtml(item, idx)).join("");
+              overviewContainer.innerHTML = data.slice(0, 3).map((item, idx) => buildListItemHtml(item, idx)).join("");
             }
           }
         }

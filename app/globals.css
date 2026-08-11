@@ -9,6 +9,15 @@ body {
   margin: 0;
 }
 
+/* style.css sets overflow-y:scroll on body at ≥992px which makes body the scroll
+   container and breaks position:sticky. Override it here to keep the viewport
+   as the scroll container so sticky positioning works correctly. */
+@media (min-width: 992px) {
+  body {
+    overflow-y: visible !important;
+  }
+}
+
 /* The legacy stylesheet applies a blue link hover color to every anchor.
    Buttons are anchors in several injected vendor templates, so keep their
    label readable against the button background. */

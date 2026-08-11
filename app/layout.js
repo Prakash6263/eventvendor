@@ -24,8 +24,10 @@ export default function RootLayout({ children }) {
         <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
         <link href="/vendor/bootstrap-select/dist/css/bootstrap-select.min.css" rel="stylesheet" />
       </head>
-      <body className="d-flex flex-column min-vh-100">
-        <MerchantAuthProvider>{children}</MerchantAuthProvider>
+      <body style={{margin:0}}>
+        <div className="page-scroll-container" style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+          <MerchantAuthProvider>{children}</MerchantAuthProvider>
+        </div>
         <Script src="/js/jquery.min.js" strategy="beforeInteractive" />
         <Script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" strategy="afterInteractive" />
         <Script src="/vendor/OwlCarousel/owl.carousel.js" strategy="afterInteractive" />

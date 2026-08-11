@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "./Header";
+import Footer from "./Footer";
 import { authService } from "../services/authService";
 
 const routeLinks = new Set([
@@ -706,12 +707,13 @@ export default function VendorHtmlPage({ markup }) {
     };
   }, []);
 
-  const contentWithoutHeader = markup ? markup.replace(/<header[\s\S]*?<\/header>/i, "") : "";
+  const contentCleaned = markup ? markup.replace(/<header[\s\S]*?<\/header>/i, "").replace(/<footer[\s\S]*?<\/footer>/i, "") : "";
 
   return (
     <>
       <Header />
-      <div dangerouslySetInnerHTML={{ __html: contentWithoutHeader }} />
+      <div dangerouslySetInnerHTML={{ __html: contentCleaned }} />
+      <Footer />
     </>
   );
 }

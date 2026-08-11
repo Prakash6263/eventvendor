@@ -50,13 +50,20 @@ a.btn[style*="color: white"]:focus {
   .event-dt-block .container > .row,
   .user-profile-wrapper .container > .row {
     display: flex !important;
-    align-items: stretch !important;
+    align-items: flex-start !important;
   }
 
-  .user-profile-sidebar {
+  .event-dt-block .col-lg-3,
+  .user-profile-wrapper .col-lg-3 {
     position: sticky !important;
     top: 90px !important;
     z-index: 10 !important;
+    align-self: flex-start !important;
+  }
+
+  .user-profile-sidebar {
+    position: relative !important;
+    top: 0 !important;
     width: 100% !important;
     max-height: calc(100vh - 110px) !important;
     overflow-y: auto !important;

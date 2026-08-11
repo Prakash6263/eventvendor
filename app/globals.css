@@ -1,13 +1,18 @@
-html,
+/* Clip horizontal overflow safely - clip on html does NOT break position:sticky */
+html {
+  overflow-x: clip;
+}
+
 body {
   scroll-behavior: auto;
   margin: 0;
 }
 
-/* Prevent horizontal overflow without breaking position:sticky */
+/* page-scroll-container: layout only, NO overflow - would break position:sticky */
 .page-scroll-container {
-  overflow-x: hidden;
-  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* The legacy stylesheet applies a blue link hover color to every anchor.

@@ -189,3 +189,76 @@ a.btn[style*="color: white"]:focus {
     display: none;
   }
 }
+
+/* ── Sidebar Profile Image – Loading State ────────────────────────────────── */
+.user-profile-img {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Circular shimmer shown while profile image is fetching */
+.user-profile-img.profile-loading::before {
+  content: '';
+  display: block;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    #e2e8f0 0%,
+    #cbd5e1 40%,
+    #e2e8f0 80%
+  );
+  background-size: 300% 100%;
+  animation: profileShimmer 1.4s ease-in-out infinite;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Spinning ring on top of shimmer for extra effect */
+.user-profile-img.profile-loading::after {
+  content: '';
+  display: block;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: #5b6ef5;
+  border-right-color: #5b6ef5;
+  animation: profileSpin 0.9s linear infinite;
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+}
+
+/* Hide the static placeholder image while loading */
+.user-profile-img.profile-loading img {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* Smooth reveal once real image is loaded */
+.user-profile-img img {
+  transition: opacity 0.3s ease;
+}
+
+@keyframes profileShimmer {
+  0%   { background-position: 300% 0; }
+  100% { background-position: -300% 0; }
+}
+
+@keyframes profileSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 991px) {
+  .user-profile-img.profile-loading::before,
+  .user-profile-img.profile-loading::after {
+    width: 72px;
+    height: 72px;
+  }
+}

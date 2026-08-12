@@ -106,12 +106,21 @@ export default function VendorHtmlPage({ markup }) {
         : fallbackImage;
 
       document.querySelectorAll(".user-profile-sidebar-top").forEach((sidebarTop) => {
+        const imgDiv = sidebarTop.querySelector(".user-profile-img");
         const image = sidebarTop.querySelector(".user-profile-img img");
         const name = sidebarTop.querySelector("h5");
         if (image) {
+          image.onload = () => {
+            if (imgDiv) imgDiv.classList.remove("profile-loading");
+          };
+          image.onerror = () => {
+            image.src = fallbackImage;
+            if (imgDiv) imgDiv.classList.remove("profile-loading");
+          };
           image.src = imageSource;
           image.alt = vendorName;
-          image.onerror = () => { image.src = fallbackImage; };
+        } else if (imgDiv) {
+          imgDiv.classList.remove("profile-loading");
         }
         if (name) name.textContent = vendorName;
       });
@@ -265,6 +274,13 @@ export default function VendorHtmlPage({ markup }) {
         }
       }
     };
+
+    // Show circular loading animation, hide static placeholder image
+    document.querySelectorAll(".user-profile-sidebar-top .user-profile-img").forEach((imgDiv) => {
+      imgDiv.classList.add("profile-loading");
+      const img = imgDiv.querySelector("img");
+      if (img) img.removeAttribute("src"); // Remove static unsplash placeholder
+    });
 
     document.addEventListener("click", handleProfileClick, true);
     document.addEventListener("change", handleImageChange, true);

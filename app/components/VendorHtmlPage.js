@@ -161,6 +161,15 @@ export default function VendorHtmlPage({ markup }) {
       });
 
       if (profileForm) {
+        // Add edit profile icon next to the "Profile details" heading
+        const card = profileForm.closest(".content-card");
+        if (card) {
+          const title = card.querySelector("h5");
+          if (title && !title.querySelector(".fa-edit")) {
+            title.innerHTML = `Profile details <i class="fa fa-edit ms-2 text-primary" style="font-size: 17px; cursor: pointer; transition: transform 0.15s ease-in-out;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1)';" title="Edit Profile"></i>`;
+          }
+        }
+
         const values = {
           "Vendor Name": vendorName,
           "Email Address": profile.email,

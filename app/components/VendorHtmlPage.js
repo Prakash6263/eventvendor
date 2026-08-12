@@ -278,7 +278,7 @@ export default function VendorHtmlPage({ markup }) {
       document.removeEventListener("change", handleImageChange, true);
       document.removeEventListener("submit", handleProfileSubmit, true);
     };
-  }, []);
+  }, [markup]);
 
   useEffect(() => {
     async function loadUpcomingEvents() {
@@ -501,7 +501,7 @@ export default function VendorHtmlPage({ markup }) {
       }
     }
     loadUpcomingEvents();
-  }, []);
+  }, [markup]);
 
   useEffect(() => {
     const defaultImgs = [
@@ -800,7 +800,7 @@ export default function VendorHtmlPage({ markup }) {
       }
     }
     loadReservationRequests();
-  }, []);
+  }, [markup]);
 
   // ─── LIVE CHAT PAGE ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -940,7 +940,7 @@ export default function VendorHtmlPage({ markup }) {
       clearInterval(pollInterval);
       chatForm?.removeEventListener("submit", handleSubmit);
     };
-  }, []);
+  }, [markup]);
 
   const contentCleaned = markup ? markup.replace(/<header[\s\S]*?<\/header>/i, "").replace(/<footer[\s\S]*?<\/footer>/i, "") : "";
 

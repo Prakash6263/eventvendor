@@ -37,16 +37,24 @@ export default function VendorHtmlPage({ markup }) {
       }
 
       // Handle legacy .html links from injected markup
-      if (href.endsWith(".html")) {
-        href = "/" + href.replace(/\.html$/, "").replace(/^\/+/, "");
-      } else if (href.includes(".html?")) {
-        href = "/" + href.replace(/\.html\?/, "?").replace(/^\/+/, "");
+      let targetHref = href;
+      if (targetHref.endsWith(".html")) {
+        targetHref = "/" + targetHref.replace(/\.html$/, "").replace(/^\/+/, "");
+      } else if (targetHref.includes(".html?")) {
+        targetHref = "/" + targetHref.replace(/\.html\?/, "?").replace(/^\/+/, "");
+      }
+
+      // If clicking the currently active page/tab, ignore it completely to prevent double-click / re-render bugs
+      const currentPath = window.location.pathname;
+      if (targetHref === currentPath || (currentPath === "/" && targetHref === "/")) {
+        event.preventDefault();
+        return;
       }
 
       // Handle internal SPA navigation without full page reload
-      if (href.startsWith("/")) {
+      if (targetHref.startsWith("/")) {
         event.preventDefault();
-        router.push(href);
+        router.push(targetHref);
         return;
       }
     };

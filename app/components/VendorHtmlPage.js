@@ -13,6 +13,11 @@ const routeLinks = new Set([
   "/about", "/privacy", "/terms"
 ]);
 
+// Module-level profile cache — persists across effect cleanup and tab switches.
+// Once loaded from the API, the real profile is applied instantly on every
+// subsequent page render without showing the loading spinner again.
+let _cachedSidebarProfile = null;
+
 export default function VendorHtmlPage({ markup }) {
   const router = useRouter();
 
@@ -96,13 +101,19 @@ export default function VendorHtmlPage({ markup }) {
     const applyProfile = (profile) => {
       if (!profile) return;
       currentProfile = profile;
+      // Save to module-level cache so next render applies instantly
+      if (profile.fullName || profile.profileImage || profile.profilePic) {
+        _cachedSidebarProfile = profile;
+      }
       const vendorName = profile.fullName || profile.name || profile.merchantName || profile.restaurantName || "Vendor";
       const rawImage = profile.profileImage || profile.profilePic || profile.image || profile.avatar || "";
       const fallbackImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(vendorName)}&background=5b6ef5&color=fff&size=128`;
+      // Use stable cache buster (updatedAt or _id) — NOT Date.now() which breaks browser cache
+      const stableBuster = profile.updatedAt || profile._id || "1";
       const imageSource = rawImage
         ? (rawImage.startsWith("blob:") || rawImage.startsWith("data:")
             ? rawImage
-            : `${rawImage}${rawImage.includes("?") ? "&" : "?"}v=${profile.updatedAt || Date.now()}`)
+            : `${rawImage}${rawImage.includes("?") ? "&" : "?"}v=${stableBuster}`)
         : fallbackImage;
 
       document.querySelectorAll(".user-profile-sidebar-top").forEach((sidebarTop) => {
@@ -275,18 +286,25 @@ export default function VendorHtmlPage({ markup }) {
       }
     };
 
-    // Show circular loading animation, hide static placeholder image
-    document.querySelectorAll(".user-profile-sidebar-top .user-profile-img").forEach((imgDiv) => {
-      imgDiv.classList.add("profile-loading");
-      const img = imgDiv.querySelector("img");
-      if (img) img.removeAttribute("src"); // Remove static unsplash placeholder
-    });
-
     document.addEventListener("click", handleProfileClick, true);
     document.addEventListener("change", handleImageChange, true);
     document.addEventListener("submit", handleProfileSubmit, true);
-    if (cachedMerchantProfile) applyProfile(cachedMerchantProfile);
-    loadMerchantProfile();
+
+    if (_cachedSidebarProfile) {
+      // Profile already loaded from a previous tab — apply instantly, no spinner needed
+      applyProfile(_cachedSidebarProfile);
+      // Silently refresh in background in case profile was updated
+      loadMerchantProfile();
+    } else {
+      // First load — show loading spinner until API responds
+      document.querySelectorAll(".user-profile-sidebar-top .user-profile-img").forEach((imgDiv) => {
+        imgDiv.classList.add("profile-loading");
+        const img = imgDiv.querySelector("img");
+        if (img) img.removeAttribute("src");
+      });
+      if (cachedMerchantProfile) applyProfile(cachedMerchantProfile);
+      loadMerchantProfile();
+    }
     return () => {
       cancelled = true;
       if (previewUrl) URL.revokeObjectURL(previewUrl);

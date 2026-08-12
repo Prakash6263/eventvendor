@@ -958,7 +958,27 @@ export default function VendorHtmlPage({ markup }) {
     };
   }, [markup]);
 
-  const contentCleaned = markup ? markup.replace(/<header[\s\S]*?<\/header>/i, "").replace(/<footer[\s\S]*?<\/footer>/i, "") : "";
+  // Strip static placeholders before rendering so they never flash:
+  // 1. Remove src from the sidebar profile <img> (the unsplash placeholder)
+  // 2. Remove "Vendor name" text from sidebar h5 — replaced by applyProfile
+  const contentCleaned = markup
+    ? markup
+        .replace(/<header[\s\S]*?<\/header>/i, "")
+        .replace(/<footer[\s\S]*?<\/footer>/i, "")
+        .replace(
+          /(<div[^>]*class="user-profile-img"[^>]*>[\s\S]{0,400}?<img[^>]*?)\s+src="[^"]*unsplash[^"]*"([^>]*>)/gi,
+          '$1$2'
+        )
+        .replace(
+          /(<div[^>]*class="user-profile-img"[^>]*>[\s\S]{0,400}?<img[^>]*?)\s+src="https?:\/\/[^"]*photo[^"]*"([^>]*>)/gi,
+          '$1$2'
+        )
+        .replace(
+          /(<div[^>]*class="user-profile-sidebar-top"[\s\S]{0,600}?<h5[^>]*>)Vendor name(<\/h5>)/gi,
+          '$1$2'
+        )
+    : "";
+
 
   return (
     <>

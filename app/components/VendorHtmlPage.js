@@ -50,8 +50,240 @@ export default function VendorHtmlPage({ markup }) {
   }, [router]);
 
   useEffect(() => {
+    let cancelled = false;
+    let selectedProfileImage = null;
+    let previewUrl = "";
+    let currentProfile = null;
+
+    const getFieldByLabel = (form, labelText) => {
+      const label = Array.from(form.querySelectorAll("label")).find(
+        (item) => item.textContent?.trim().toLowerCase() === labelText.toLowerCase()
+      );
+      return label?.parentElement?.querySelector("input, select, textarea") || null;
+    };
+
+    const profileCard = window.location.pathname === "/vendor-profile"
+      ? Array.from(document.querySelectorAll(".content-card")).find(
+          (card) => card.querySelector("h5")?.textContent?.trim().toLowerCase() === "profile details"
+        )
+      : null;
+    const profileForm = profileCard?.querySelector("form") || null;
+    const imageInput = document.querySelector(".user-profile-sidebar .profile-img-file");
+    const imageButton = document.querySelector(".user-profile-sidebar .profile-img-btn");
+    const profileSaveButton = profileForm?.querySelector('button[type="submit"]');
+    if (profileSaveButton) {
+      profileSaveButton.type = "button";
+      profileSaveButton.dataset.profileSave = "true";
+    }
+    const deleteAccountButton = profileForm
+      ? Array.from(profileForm.querySelectorAll("button")).find(
+          (button) => button.textContent?.trim().toLowerCase().includes("delete account")
+        )
+      : null;
+    const sidebarList = document.querySelector(".user-profile-sidebar .user-profile-sidebar-list");
+    if (deleteAccountButton && sidebarList) {
+      const deleteItem = document.createElement("li");
+      deleteItem.className = "sidebar-delete-account-item";
+      deleteAccountButton.className = "btn btn-outline-danger sidebar-delete-account-btn";
+      deleteAccountButton.type = "button";
+      deleteItem.appendChild(deleteAccountButton);
+      sidebarList.appendChild(deleteItem);
+    }
+
+    const userObj = authService.getUser();
+    const cachedMerchantProfile = userObj?.userProfile || userObj?.merchantProfile || userObj || null;
+
+    const applyProfile = (profile) => {
+      if (!profile) return;
+      currentProfile = profile;
+      const vendorName = profile.fullName || profile.name || profile.merchantName || profile.restaurantName || "Vendor";
+      const rawImage = profile.profileImage || profile.profilePic || profile.image || profile.avatar || "";
+      const fallbackImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(vendorName)}&background=5b6ef5&color=fff&size=128`;
+      const imageSource = rawImage
+        ? (rawImage.startsWith("blob:") || rawImage.startsWith("data:")
+            ? rawImage
+            : `${rawImage}${rawImage.includes("?") ? "&" : "?"}v=${profile.updatedAt || Date.now()}`)
+        : fallbackImage;
+
+      document.querySelectorAll(".user-profile-sidebar-top").forEach((sidebarTop) => {
+        const image = sidebarTop.querySelector(".user-profile-img img");
+        const name = sidebarTop.querySelector("h5");
+        if (image) {
+          image.src = imageSource;
+          image.alt = vendorName;
+          image.onerror = () => { image.src = fallbackImage; };
+        }
+        if (name) name.textContent = vendorName;
+      });
+
+      // Update active nav link on sidebar for the current route
+      const currentPath = window.location.pathname;
+      document.querySelectorAll(".user-profile-sidebar-list a").forEach((a) => {
+        let href = a.getAttribute("href");
+        if (href) {
+          if (href.endsWith(".html")) href = "/" + href.replace(/\.html$/, "").replace(/^\/+/, "");
+          else if (href.includes(".html?")) href = "/" + href.replace(/\.html\?/, "?").replace(/^\/+/, "");
+
+          if (href === currentPath || (currentPath === "/" && href === "/")) {
+            a.classList.add("active");
+          } else if (href !== "#" && !href.startsWith("javascript:")) {
+            a.classList.remove("active");
+          }
+        }
+      });
+
+      if (profileForm) {
+        const values = {
+          "Vendor Name": vendorName,
+          "Email Address": profile.email,
+          "Date": profile.dob,
+          "Gender": String(profile.gender || "").toUpperCase(),
+          "Phone Number": `${profile.countryCode || ""} ${profile.mobile || ""}`.trim(),
+        };
+        Object.entries(values).forEach(([label, value]) => {
+          const field = getFieldByLabel(profileForm, label);
+          if (field && value !== undefined && value !== null) field.value = value;
+        });
+        const emailField = getFieldByLabel(profileForm, "Email Address");
+        const phoneField = getFieldByLabel(profileForm, "Phone Number");
+        if (emailField) emailField.readOnly = true;
+        if (phoneField) phoneField.readOnly = true;
+      }
+    };
+
+    async function loadMerchantProfile() {
+      try {
+        const response = await authService.getUserProfile();
+        if (cancelled || !response?.status || !response?.data) return;
+        applyProfile(response.data);
+      } catch (error) {
+        console.error("Failed to load merchant profile:", error);
+      }
+    }
+
+    const showProfileMessage = (message, success, targetForm = profileForm) => {
+      if (!targetForm) return;
+      let alert = targetForm.querySelector("#profileUpdateMessage");
+      if (!alert) {
+        alert = document.createElement("div");
+        alert.id = "profileUpdateMessage";
+        targetForm.prepend(alert);
+      }
+      alert.className = `alert ${success ? "alert-success" : "alert-danger"} rounded-3`;
+      alert.textContent = message;
+    };
+
+    const handleProfileClick = (event) => {
+      const saveButton = event.target.closest('button[data-profile-save="true"], button[type="submit"]');
+      const saveForm = saveButton?.closest("form");
+      const isProfileSave = saveForm && Array.from(saveForm.querySelectorAll("label")).some(
+        (label) => label.textContent?.trim().toLowerCase() === "vendor name"
+      );
+      if (isProfileSave && window.location.pathname === "/vendor-profile") {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        handleProfileSubmit({
+          target: saveForm,
+          preventDefault() {},
+          stopPropagation() {},
+        });
+        return;
+      }
+
+      const button = event.target.closest(".profile-img-btn");
+      if (!button || window.location.pathname !== "/vendor-profile") return;
+      event.preventDefault();
+      const input = button.parentElement?.querySelector(".profile-img-file") || imageInput;
+      input?.click();
+    };
+    const handleImageChange = (event) => {
+      if (!event.target.matches(".profile-img-file") || window.location.pathname !== "/vendor-profile") return;
+      selectedProfileImage = event.target.files?.[0] || null;
+      if (!selectedProfileImage) return;
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = URL.createObjectURL(selectedProfileImage);
+      document.querySelectorAll(".user-profile-sidebar .user-profile-img img").forEach((preview) => {
+        preview.src = previewUrl;
+      });
+    };
+    const handleProfileSubmit = async (event) => {
+      if (window.location.pathname !== "/vendor-profile") return;
+      const submittedForm = event.target;
+      const isProfileForm = Array.from(submittedForm.querySelectorAll("label")).some(
+        (label) => label.textContent?.trim().toLowerCase() === "vendor name"
+      );
+      if (!isProfileForm) return;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const submitButton = submittedForm.querySelector('button[data-profile-save="true"], button[type="submit"]');
+      if (submitButton?.disabled) return;
+      const payload = new FormData();
+      const fullName = getFieldByLabel(submittedForm, "Vendor Name")?.value.trim() || "";
+      const dob = getFieldByLabel(submittedForm, "Date")?.value.trim() || "";
+      const gender = getFieldByLabel(submittedForm, "Gender")?.value || currentProfile?.gender || "";
+
+      if (!fullName) {
+        showProfileMessage("Vendor name is required.", false, submittedForm);
+        return;
+      }
+      if (!gender) {
+        showProfileMessage("Gender is required.", false, submittedForm);
+        return;
+      }
+
+      payload.append("fullName", fullName);
+      payload.append("dob", dob);
+      payload.append("gender", gender.toLowerCase());
+      if (selectedProfileImage) payload.append("profileImage", selectedProfileImage);
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Saving...`;
+      }
+
+      try {
+        const response = await authService.updateProfile(payload);
+        if (!response?.status) throw new Error(response?.message || "Failed to update profile.");
+        showProfileMessage(response.message || "Profile updated successfully.", true, submittedForm);
+        selectedProfileImage = null;
+        const currentImageInput = document.querySelector(".user-profile-sidebar .profile-img-file");
+        if (currentImageInput) currentImageInput.value = "";
+
+        const updatedProfile = response.data?.data || response.data?.merchant || response.data;
+        if (updatedProfile && typeof updatedProfile === "object") {
+          applyProfile({ ...currentProfile, ...updatedProfile });
+        }
+        await loadMerchantProfile();
+      } catch (error) {
+        showProfileMessage(error.message || "Failed to update profile.", false, submittedForm);
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = "Save Changes";
+        }
+      }
+    };
+
+    document.addEventListener("click", handleProfileClick, true);
+    document.addEventListener("change", handleImageChange, true);
+    document.addEventListener("submit", handleProfileSubmit, true);
+    if (cachedMerchantProfile) applyProfile(cachedMerchantProfile);
+    loadMerchantProfile();
+    return () => {
+      cancelled = true;
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      document.removeEventListener("click", handleProfileClick, true);
+      document.removeEventListener("change", handleImageChange, true);
+      document.removeEventListener("submit", handleProfileSubmit, true);
+    };
+  }, []);
+
+  useEffect(() => {
     async function loadUpcomingEvents() {
       try {
+        const path = window.location.pathname;
         const heroTitle = document.querySelector(".hero-banner-content h2");
         if (heroTitle) {
           if (window.location.pathname === "/all-events") heroTitle.textContent = "Upcoming Events";
@@ -61,6 +293,8 @@ export default function VendorHtmlPage({ markup }) {
           else if (window.location.pathname === "/vendor-reservation-details") heroTitle.textContent = "Reservation Detail";
           else if (window.location.pathname === "/vendor-event-details") heroTitle.textContent = "Event Detail";
         }
+
+        if (!["/", "/all-events", "/vendor-event-details"].includes(path)) return;
 
         const res = await authService.getMerchantAllEvents();
         if (res && res.status && Array.isArray(res.data) && res.data.length > 0) {
@@ -81,7 +315,6 @@ export default function VendorHtmlPage({ markup }) {
             } catch { return { date: dateStr, time: startTime || "" }; }
           };
 
-          const path = window.location.pathname;
           // Draft events are kept for direct detail lookup but are not published in upcoming lists.
           const upcomingEvents = eventsData.filter((event) => String(event.status || "").toLowerCase() !== "draft");
           const defaultImgs = [
@@ -332,10 +565,12 @@ export default function VendorHtmlPage({ markup }) {
 
     async function loadReservationRequests() {
       try {
+        const path = window.location.pathname;
+        if (!["/", "/reservation-list", "/vendor-reservation-details"].includes(path)) return;
+
         const res = await authService.getMerchantEvents();
         if (!res || !res.status || !Array.isArray(res.data)) return;
         const data = res.data;
-        const path = window.location.pathname;
 
         if (path === "/") {
           // Find the Reservation Request Overview card — it's the second content-card on the dashboard

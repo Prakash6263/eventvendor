@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { authService } from "../services/authService";
+import { getApplicationRoute } from "../lib/merchantStatus";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,10 +28,20 @@ export default function LoginPage() {
       const res = await authService.login({ email, password });
 
       if (res && res.status) {
+        const profileResponse = await authService.getMerchantProfile();
+        if (!profileResponse?.status || !profileResponse?.data) {
+          setErrorMsg(profileResponse?.message || "Unable to load your merchant profile.");
+          return;
+        }
+
+        const destination = getApplicationRoute(profileResponse.data);
+        if (!destination) {
+          setErrorMsg("Your merchant application status is unavailable. Please contact support.");
+          return;
+        }
+
         setSuccessMsg(res.message || "Login successful!");
-        setTimeout(() => {
-          router.push("/");
-        }, 1000);
+        router.replace(destination);
       } else {
         setErrorMsg(res?.message || "Invalid credentials. Please try again.");
       }

@@ -1,5 +1,5 @@
-import Script from "next/script";
 import MerchantAuthProvider from "./components/MerchantAuthProvider";
+import LegacyScripts from "./components/LegacyScripts";
 import "./globals.css";
 
 export const metadata = {
@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="min-vh-100">
+    <html lang="en" className="min-vh-100" data-scroll-behavior="smooth">
       <head>
         <link rel="icon" type="image/png" href="/images/fav.png" />
         <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet" />
@@ -26,12 +26,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="d-flex flex-column min-vh-100">
         <MerchantAuthProvider>{children}</MerchantAuthProvider>
-        <Script src="/js/jquery.min.js" strategy="beforeInteractive" />
-        <Script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" strategy="afterInteractive" />
-        <Script src="/vendor/OwlCarousel/owl.carousel.js" strategy="afterInteractive" />
-        <Script src="/vendor/bootstrap-select/dist/js/bootstrap-select.min.js" strategy="afterInteractive" />
-        <Script src="/vendor/mixitup/dist/mixitup.min.js" strategy="afterInteractive" />
-        <Script src="/js/custom.js" strategy="afterInteractive" />
+        <LegacyScripts />
       </body>
     </html>
   );

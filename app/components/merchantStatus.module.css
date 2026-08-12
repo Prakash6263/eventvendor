@@ -1,0 +1,201 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 8% 18%, rgba(91, 103, 241, .10), transparent 24%),
+    radial-gradient(circle at 92% 75%, rgba(54, 224, 153, .10), transparent 22%),
+    #f7f8fc;
+}
+
+.header {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #edf0f5;
+  box-shadow: 0 2px 12px rgba(12, 27, 51, .04);
+}
+
+.headerInner {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.logo {
+  width: 145px;
+  height: auto;
+  object-fit: contain;
+}
+
+.logoutButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #dfe3ec;
+  border-radius: 10px;
+  color: #334155;
+  background: #fff;
+  font-weight: 700;
+  transition: .2s ease;
+}
+
+.logoutButton:hover {
+  color: #fff;
+  border-color: #3e56f0;
+  background: #3e56f0;
+}
+
+.main {
+  width: min(720px, calc(100% - 32px));
+  margin: auto;
+  padding: 54px 0;
+}
+
+.mainWide {
+  width: min(1120px, calc(100% - 32px));
+}
+
+.statusCard {
+  position: relative;
+  overflow: hidden;
+  padding: 42px;
+  background: #fff;
+  border: 1px solid #edf0f5;
+  border-radius: 24px;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, .09);
+  text-align: center;
+}
+
+.statusTitle {
+  margin: 0 0 28px;
+  color: #ff3d3d;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 800;
+}
+
+.statusArtwork {
+  position: relative;
+  width: 230px;
+  height: 190px;
+  margin: 0 auto 28px;
+}
+
+.successBadge,
+.inactiveBadge {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 104px;
+  height: 104px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 48px;
+  border-radius: 32px;
+  box-shadow: 0 14px 30px rgba(54, 224, 153, .28);
+}
+
+.successBadge {
+  background: #36e099;
+  clip-path: polygon(50% 0%, 64% 12%, 82% 10%, 90% 28%, 100% 42%, 91% 58%, 92% 77%, 74% 85%, 61% 100%, 44% 92%, 26% 98%, 16% 81%, 0% 69%, 7% 50%, 1% 33%, 19% 22%, 28% 5%);
+}
+
+.inactiveBadge {
+  color: #ff3d3d;
+  background: #fff;
+  border: 12px solid #ff3d3d;
+  border-radius: 50%;
+  box-shadow: 0 14px 30px rgba(255, 61, 61, .18);
+}
+
+.inactiveBadge::after {
+  content: "";
+  position: absolute;
+  width: 78px;
+  height: 12px;
+  border-radius: 10px;
+  background: #ff3d3d;
+  transform: rotate(-45deg);
+}
+
+.dot {
+  position: absolute;
+  border-radius: 50%;
+  background: #36e099;
+}
+
+.inactiveArtwork .dot {
+  background: #ff3d3d;
+}
+
+.dot1 { width: 22px; height: 22px; top: 12px; left: 18px; }
+.dot2 { width: 9px; height: 9px; top: 20px; right: 68px; }
+.dot3 { width: 16px; height: 16px; top: 48px; right: 14px; }
+.dot4 { width: 7px; height: 7px; bottom: 38px; left: 28px; }
+.dot5 { width: 10px; height: 10px; bottom: 8px; left: 83px; }
+.dot6 { width: 8px; height: 8px; bottom: 28px; right: 24px; }
+
+.statusText {
+  max-width: 520px;
+  margin: 0 auto 28px;
+  color: #475569;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.statusAction {
+  width: 100%;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(135deg, #5368ff, #3e56f0);
+  box-shadow: 0 10px 22px rgba(62, 86, 240, .22);
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+
+.statusAction:disabled {
+  opacity: .68;
+  cursor: not-allowed;
+}
+
+.statusMessage {
+  margin: 0 0 18px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.statusInfo {
+  color: #3154a5;
+  background: #eef4ff;
+  border: 1px solid #dce8ff;
+}
+
+.statusError {
+  color: #a42828;
+  background: #fff0f0;
+  border: 1px solid #ffd2d2;
+}
+
+@media (max-width: 575px) {
+  .header { min-height: 68px; }
+  .logo { width: 122px; }
+  .logoutButton { padding: 9px 12px; }
+  .logoutButton span { display: none; }
+  .main { padding: 28px 0; }
+  .statusCard { padding: 30px 20px; border-radius: 18px; }
+  .statusArtwork { transform: scale(.88); margin-top: -8px; margin-bottom: 12px; }
+}
+

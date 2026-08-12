@@ -9,14 +9,13 @@ import { authService } from "../services/authService";
 import { getCountries, getCountryCallingCode } from "libphonenumber-js";
 import styles from "./signup.module.css";
 
-const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
-const countryOptions = getCountries()
+const baseCountryOptions = getCountries()
   .map((iso) => ({
     iso,
-    country: regionNames.of(iso) || iso,
+    country: iso,
     code: `+${getCountryCallingCode(iso)}`,
   }))
-  .sort((first, second) => first.country.localeCompare(second.country));
+  .sort((first, second) => (first.iso < second.iso ? -1 : first.iso > second.iso ? 1 : 0));
 
 export default function SignupPage() {
   const router = useRouter();
@@ -30,12 +29,27 @@ export default function SignupPage() {
     serviceId: "",
   });
   const [servicesList, setServicesList] = useState([]);
+  const [countryOptions, setCountryOptions] = useState(baseCountryOptions);
   const [loadingServices, setLoadingServices] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  useEffect(() => {
+    if (typeof Intl.DisplayNames !== "function") return;
+
+    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+    setCountryOptions(
+      baseCountryOptions
+        .map((country) => ({
+          ...country,
+          country: regionNames.of(country.iso) || country.iso,
+        }))
+        .sort((first, second) => first.country.localeCompare(second.country, "en"))
+    );
+  }, []);
 
   useEffect(() => {
     async function loadServices() {
@@ -106,7 +120,7 @@ export default function SignupPage() {
   return (
     <>
       <Header />
-      <main className={`${styles.page} form-wrapper bg-light`}>
+      <main className={`${styles.page} signup-page form-wrapper bg-light`}>
         <section className={`${styles.phonePanel} registration border bg-white`}>
         <button type="button" className={styles.backButton} onClick={() => router.back()} aria-label="Go back">
           <i className="fa-solid fa-arrow-left" />

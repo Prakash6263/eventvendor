@@ -1,12 +1,22 @@
 import { apiRequest, getToken, saveAuthData, clearAuthData } from "./apiClient";
 
 const MERCHANT_LOGIN_URL = "https://eventuna.com/api/merchant/login";
+const MERCHANT_PROFILE_URL = "https://eventuna.com/api/merchant/profile";
 
 // 0. Get Services API
 export const getServicesApi = async () => {
   return await apiRequest("https://eventuna.com/api/merchant/services", {
     method: "GET",
   });
+};
+
+// Get service-specific subcategories (for example restaurant types)
+export const getSubServicesApi = async ({ id }) => {
+  const query = new URLSearchParams({ id });
+  return await apiRequest(
+    `https://eventuna.com/api/merchant/sub-services?${query.toString()}`,
+    { method: "GET" }
+  );
 };
 
 // 1. Signup API
@@ -66,7 +76,12 @@ export const loginApi = async ({ email, password }) => {
       ios_register_id: data.ios_register_id,
       serviceId: data.serviceId,
       email,
+      userProfile: data.user || data.merchantProfile || data.data || null,
     });
+    // Async prefetch of full merchant profile to seed local storage for immediate render
+    try {
+      getUserProfileApi().catch(() => {});
+    } catch (e) {}
   }
 
   return data;
@@ -130,12 +145,30 @@ export const changePasswordApi = async ({ newPassword }) => {
 
 // 9. Get User Profile API
 export const getUserProfileApi = async () => {
-  const data = await apiRequest("/auth/user-profile", {
+  const data = await apiRequest("https://eventuna.com/api/merchant/get-merchant-profiles", {
     method: "GET",
   });
 
-  if (data && data.status && data.user) {
-    saveAuthData({ userProfile: data.user });
+  if (data && data.status && data.data) {
+    saveAuthData({ userProfile: data.data });
+  }
+
+  return data;
+};
+
+// Full merchant profile used for application-status routing and onboarding.
+export const getMerchantProfileApi = async () => {
+  const data = await apiRequest(MERCHANT_PROFILE_URL, {
+    method: "GET",
+  });
+
+  if (data?.status && data?.data) {
+    saveAuthData({
+      merchantProfile: data.data,
+      applicationStatus: data.data.applicationStatus,
+      isActive: data.data.isActive,
+      merchantProfileFetchedAt: Date.now(),
+    });
   }
 
   return data;
@@ -156,12 +189,98 @@ export const updateProfileApi = async (payload) => {
     body = formData;
   }
 
-  const data = await apiRequest("/auth/update-profile", {
+  const data = await apiRequest("https://eventuna.com/api/merchant/update-merchant-getMerchantProfileFields", {
     method: "PUT",
     body,
   });
 
+  if (data && data.status) {
+    const updated = data.data?.data || data.data?.merchant || data.data;
+    if (updated && typeof updated === "object") {
+      saveAuthData({ userProfile: updated });
+    }
+  }
+
   return data;
+};
+
+const toMerchantProfileFormData = (payload) => {
+  if (payload instanceof FormData) return payload;
+
+  const formData = new FormData();
+  Object.entries(payload || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    const isBlob = typeof Blob !== "undefined" && value instanceof Blob;
+    if (isBlob || typeof value === "string") {
+      formData.append(key, value);
+      return;
+    }
+
+    if (typeof value === "number" || typeof value === "boolean") {
+      formData.append(key, String(value));
+      return;
+    }
+
+    formData.append(key, JSON.stringify(value));
+  });
+
+  return formData;
+};
+
+// Full merchant application/profile submission, including documents and banner.
+export const updateMerchantProfileApi = async (payload) => {
+  return await apiRequest("https://eventuna.com/api/merchant/update-profile", {
+    method: "PUT",
+    body: toMerchantProfileFormData(payload),
+  });
+};
+
+export const getMerchantLocationsApi = async () => {
+  return await apiRequest("https://eventuna.com/api/merchant/location", {
+    method: "GET",
+  });
+};
+
+export const addMerchantLocationApi = async (payload) => {
+  return await apiRequest("https://eventuna.com/api/merchant/add-location", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const updateMerchantLocationApi = async (payload) => {
+  return await apiRequest("https://eventuna.com/api/merchant/update-location", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const getMerchantCouponsApi = async () => {
+  return await apiRequest("https://eventuna.com/api/merchant/all-coupons", {
+    method: "GET",
+  });
+};
+
+export const addMerchantCouponApi = async (payload) => {
+  return await apiRequest("https://eventuna.com/api/merchant/add-coupon", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const updateMerchantCouponApi = async (payload) => {
+  return await apiRequest("https://eventuna.com/api/merchant/update-coupon", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const deleteMerchantCouponApi = async ({ couponId }) => {
+  return await apiRequest("https://eventuna.com/api/merchant/delete-coupon", {
+    method: "POST",
+    body: { couponId },
+  });
 };
 
 // 11. Sync Contacts API
@@ -249,6 +368,7 @@ export const authApi = {
   activateReservation: activateReservationApi,
   cancelReservation: cancelReservationApi,
   getServices: getServicesApi,
+  getSubServices: getSubServicesApi,
   signup: signupApi,
   verifyOtp: verifyOtpApi,
   login: loginApi,
@@ -258,7 +378,16 @@ export const authApi = {
   resetPassword: resetPasswordApi,
   changePassword: changePasswordApi,
   getUserProfile: getUserProfileApi,
+  getMerchantProfile: getMerchantProfileApi,
   updateProfile: updateProfileApi,
+  updateMerchantProfile: updateMerchantProfileApi,
+  getMerchantLocations: getMerchantLocationsApi,
+  addMerchantLocation: addMerchantLocationApi,
+  updateMerchantLocation: updateMerchantLocationApi,
+  getMerchantCoupons: getMerchantCouponsApi,
+  addMerchantCoupon: addMerchantCouponApi,
+  updateMerchantCoupon: updateMerchantCouponApi,
+  deleteMerchantCoupon: deleteMerchantCouponApi,
   syncContacts: syncContactsApi,
   getAllUsers: getAllUsersApi,
   getAddresses: getAddressesApi,

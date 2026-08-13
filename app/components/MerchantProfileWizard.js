@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "../services/authService";
+import LocationMapPicker from "./LocationMapPicker";
 import { getApplicationRoute, normalizeApplicationStatus } from "../lib/merchantStatus";
 import statusStyles from "./merchantStatus.module.css";
 import styles from "./MerchantProfileWizard.module.css";
 
 const DRAFT_KEY = "eventuna-merchant-onboarding-draft";
+const RESTAURANT_SERVICE_ID = "686fb6ced46e9740ee8277ec";
 
 const STEPS = [
   { id: "types", label: "Restaurant Type", icon: "fa-utensils" },
@@ -54,6 +56,13 @@ const EMPTY_LOCATION = {
   locationPhone: "",
   openTwoShifts: false,
 };
+
+const WEEK_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const createEmptySchedule = () => WEEK_DAYS.map((day) => ({
+  day,
+  morning: { from: "00:00", to: "00:00" },
+  evening: { from: "00:00", to: "00:00" },
+}));
 
 const EMPTY_COUPON = {
   _id: "",
@@ -107,18 +116,58 @@ function UploadField({ label, name, file, existingUrl, accept = "image/*", onCha
   );
 }
 
+function BannerUploadField({ file, existingUrl, onChange }) {
+  const previewUrl = useMemo(
+    () => (file ? URL.createObjectURL(file) : existingUrl || ""),
+    [file, existingUrl]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (file && previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [file, previewUrl]);
+
+  return (
+    <label className={`${styles.uploadCard} ${styles.bannerUploadCard}`}>
+      <input
+        className={styles.hiddenInput}
+        type="file"
+        accept="image/*"
+        onChange={(event) => onChange(event.target.files?.[0] || null)}
+      />
+      <span className={styles.uploadLabel}>Upload Image</span>
+      {previewUrl ? (
+        <img className={styles.bannerUploadPreview} src={previewUrl} alt="Selected banner preview" />
+      ) : (
+        <span className={styles.uploadIcon}><i className="fa-solid fa-image" /></span>
+      )}
+      <span className={styles.uploadHint}>{file?.name || (existingUrl ? "Click to replace image" : "Click to choose an image")}</span>
+    </label>
+  );
+}
+
 export default function MerchantProfileWizard() {
   const router = useRouter();
   const [started, setStarted] = useState(false);
   const [step, setStep] = useState(0);
   const [profile, setProfile] = useState(null);
+  const [selectedServiceName, setSelectedServiceName] = useState("");
   const [form, setForm] = useState(EMPTY_FORM);
   const [files, setFiles] = useState(EMPTY_FILES);
   const [subServices, setSubServices] = useState([]);
+  const [loadingSubServices, setLoadingSubServices] = useState(false);
   const [locations, setLocations] = useState([]);
   const [coupons, setCoupons] = useState([]);
   const [locationForm, setLocationForm] = useState(EMPTY_LOCATION);
-  const [showLocationForm, setShowLocationForm] = useState(false);
+  const [locationView, setLocationView] = useState("list");
+  const [selectedLocationId, setSelectedLocationId] = useState("");
+  const [weeklySchedule, setWeeklySchedule] = useState(createEmptySchedule);
+  const [locationSectionsCompleted, setLocationSectionsCompleted] = useState({
+    details: false,
+    hours: false,
+    photos: false,
+  });
   const [couponForm, setCouponForm] = useState(EMPTY_COUPON);
   const [showCouponForm, setShowCouponForm] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -140,6 +189,21 @@ export default function MerchantProfileWizard() {
       .filter((service) => selected.has(service._id))
       .map((service) => service.subServicesName);
   }, [form.serviceSubcategoryIds, subServices]);
+
+  const isRestaurantService = useMemo(() => {
+    const serviceId = getId(profile?.serviceId)
+      || getId(authService.getUser()?.serviceId)
+      || (typeof window !== "undefined" ? localStorage.getItem("eventuna-signup-service-id") : "")
+      || "";
+    return serviceId === RESTAURANT_SERVICE_ID
+      || selectedServiceName.trim().toLowerCase() === "restaurants"
+      || selectedServiceName.trim().toLowerCase() === "restaurant";
+  }, [profile, selectedServiceName]);
+
+  const visibleSteps = useMemo(
+    () => (isRestaurantService ? STEPS : STEPS.filter((item) => item.id !== "types")),
+    [isRestaurantService]
+  );
 
   const applyProfile = (merchantProfile, savedDraft = null) => {
     if (!merchantProfile) return;
@@ -189,26 +253,51 @@ export default function MerchantProfileWizard() {
       }
 
       try {
-        let merchantProfile = authService.getUser()?.merchantProfile || null;
-        if (!merchantProfile) {
-          const response = await authService.getMerchantProfile();
-          if (!response?.status || !response?.data) {
-            throw new Error(response?.message || "Unable to load your merchant profile.");
-          }
+        // Always revalidate the full profile here. The cached login payload can
+        // contain an older/incomplete serviceId, which would leave step one
+        // with no subservice options after a refresh.
+        let merchantProfile = null;
+        const cachedProfile = authService.getUser()?.merchantProfile || null;
+        const response = await authService.getMerchantProfile();
+        if (response?.status && response?.data) {
           merchantProfile = response.data;
+        } else if (cachedProfile) {
+          merchantProfile = cachedProfile;
+        } else {
+          throw new Error(response?.message || "Unable to load your merchant profile.");
         }
         if (cancelled) return;
 
         applyProfile(merchantProfile, savedDraft);
+        const serviceId = getId(merchantProfile.serviceId)
+          || getId(authService.getUser()?.serviceId)
+          || localStorage.getItem("eventuna-signup-service-id")
+          || "";
+        const serviceName = typeof merchantProfile.serviceId === "object"
+          ? merchantProfile.serviceId?.servicesName || localStorage.getItem("eventuna-signup-service-name") || ""
+          : localStorage.getItem("eventuna-signup-service-name") || "";
+        const restaurantService = serviceId === RESTAURANT_SERVICE_ID
+          || serviceName.trim().toLowerCase() === "restaurants"
+          || serviceName.trim().toLowerCase() === "restaurant";
+        setSelectedServiceName(serviceName);
         setStarted(Boolean(savedDraft?.started));
-        setStep(Math.min(Number(savedDraft?.step || 0), STEPS.length - 1));
+        const savedStep = Math.min(Number(savedDraft?.step || 0), STEPS.length - 1);
+        setStep(restaurantService ? savedStep : Math.max(1, savedStep));
 
-        const serviceId = getId(merchantProfile.serviceId) || getId(authService.getUser()?.serviceId);
-        if (serviceId) {
+        if (serviceId && restaurantService) {
+          authService.saveAuthData({ serviceId });
+          setLoadingSubServices(true);
           const subServiceResponse = await authService.getSubServices({ id: serviceId });
-          if (!cancelled && subServiceResponse?.status) {
-            setSubServices(normalizeArrayResponse(subServiceResponse, ["services", "subServices"]));
+          if (!cancelled) {
+            if (subServiceResponse?.status) {
+              setSubServices(normalizeArrayResponse(subServiceResponse, ["services", "subServices"]));
+            } else {
+              setError(subServiceResponse?.message || "Unable to load restaurant types.");
+            }
+            setLoadingSubServices(false);
           }
+        } else if (!serviceId && !cancelled) {
+          setError("Your service information is missing. Please contact support.");
         }
 
         const couponsResponse = await authService.getMerchantCoupons();
@@ -242,6 +331,14 @@ export default function MerchantProfileWizard() {
     setLocationForm((current) => ({ ...current, [field]: value }));
   };
 
+  const updateScheduleField = (dayIndex, shift, field, value) => {
+    setWeeklySchedule((current) => current.map((day, index) => (
+      index === dayIndex
+        ? { ...day, [shift]: { ...day[shift], [field]: value } }
+        : day
+    )));
+  };
+
   const updateCouponField = (field, value) => {
     setCouponForm((current) => ({ ...current, [field]: value }));
   };
@@ -257,7 +354,9 @@ export default function MerchantProfileWizard() {
 
   const validateStep = () => {
     if (step === 0 && form.serviceSubcategoryIds.length === 0) return "Select at least one restaurant type.";
-    if (step === 1 && (!form.serviceName.trim() || !form.serviceDescription.trim())) return "Enter the restaurant name and description.";
+    if (step === 1 && (!form.serviceName.trim() || !form.serviceDescription.trim())) {
+      return isRestaurantService ? "Enter the restaurant name and description." : "Enter the title and description.";
+    }
     if (step === 2 && (!form.cuisineName.trim() || !form.phone.trim())) return "Cuisine and phone number are required.";
     if (step === 3) {
       if (!form.commercialPermitNumber.trim()) return "Commercial permit number is required.";
@@ -290,7 +389,7 @@ export default function MerchantProfileWizard() {
   const handleBack = () => {
     setError("");
     setMessage("");
-    if (step === 0) {
+    if (step === 0 || (!isRestaurantService && step === 1)) {
       setStarted(false);
       return;
     }
@@ -334,12 +433,10 @@ export default function MerchantProfileWizard() {
 
     setActionLoading("location");
     const payload = {
-      ...locationForm,
+      addressName: locationForm.addressName.trim(),
+      address: locationForm.address.trim(),
       lat: Number(locationForm.lat),
       long: Number(locationForm.long),
-      capacity: locationForm.capacity === "" ? null : Number(locationForm.capacity),
-      weeklySchedule: [],
-      locationPhotoVideoList: [],
     };
     const response = await authService.addMerchantLocation(payload);
     if (!response?.status) {
@@ -359,8 +456,105 @@ export default function MerchantProfileWizard() {
       }
     }
     setLocationForm(EMPTY_LOCATION);
-    setShowLocationForm(false);
     setMessage(response.message || "Location added successfully.");
+    setActionLoading("");
+  };
+
+  const openLocationDetails = async (location) => {
+    const locationId = getId(location);
+    if (!locationId) return;
+    setActionLoading(`open-location-${locationId}`);
+    setError("");
+    const response = await authService.getMerchantLocations({ locationId });
+    if (!response?.status || !response?.data) {
+      setError(response?.message || "Unable to load the selected location.");
+      setActionLoading("");
+      return;
+    }
+    const detail = response.data;
+    const detailsCompleted = detail.capacity !== null && detail.capacity !== undefined
+      || Boolean(String(detail.floorPlan || "").trim())
+      || Boolean(String(detail.locationPhone || "").trim());
+    const hoursCompleted = Array.isArray(detail.weeklySchedule) && detail.weeklySchedule.length > 0;
+    setSelectedLocationId(locationId);
+    setLocationForm({
+      addressName: detail.addressName || "",
+      address: detail.address || "",
+      lat: detail.lat ?? "",
+      long: detail.long ?? "",
+      capacity: detail.capacity ?? "",
+      floorPlan: detail.floorPlan || "",
+      locationPhone: detail.locationPhone || "",
+      openTwoShifts: Boolean(detail.openTwoShifts),
+    });
+    const scheduleByDay = new Map((detail.weeklySchedule || []).map((item) => [item.day, item]));
+    setWeeklySchedule(createEmptySchedule().map((item) => ({ ...item, ...(scheduleByDay.get(item.day) || {}) })));
+    setLocationSectionsCompleted({
+      details: detailsCompleted,
+      hours: hoursCompleted,
+      photos: Array.isArray(detail.locationPhotoVideoList) && detail.locationPhotoVideoList.length > 0,
+    });
+    setLocationView("address");
+    setActionLoading("");
+  };
+
+  const openNewLocation = () => {
+    setSelectedLocationId("");
+    setLocationForm(EMPTY_LOCATION);
+    setWeeklySchedule(createEmptySchedule());
+    setLocationSectionsCompleted({ details: false, hours: false, photos: false });
+    setLocationView("address");
+    setError("");
+  };
+
+  const saveLocationDetails = async () => {
+    if (!selectedLocationId) {
+      await handleAddLocation();
+      setLocationView("list");
+      return;
+    }
+    setActionLoading("location-details");
+    setError("");
+    const payload = {
+      locationPhone: String(locationForm.locationPhone || ""),
+      locationId: selectedLocationId,
+      capacity: String(locationForm.capacity ?? ""),
+      weeklySchedule: [],
+      floorPlan: String(locationForm.floorPlan || ""),
+    };
+    const response = await authService.updateMerchantLocation(payload);
+    if (!response?.status) {
+      setError(response?.message || "Unable to update location details.");
+    } else {
+      setLocations((current) => current.map((location) => (
+        getId(location) === selectedLocationId ? { ...location, ...locationForm } : location
+      )));
+      setMessage(response.message || "Location details updated successfully.");
+      setLocationSectionsCompleted((current) => ({ ...current, details: true }));
+      setLocationView("address");
+    }
+    setActionLoading("");
+  };
+
+  const saveOpeningHours = async () => {
+    if (!selectedLocationId) {
+      setError("Save this location before adding opening hours.");
+      return;
+    }
+    setActionLoading("opening-hours");
+    setError("");
+    const response = await authService.updateMerchantLocation({
+      locationId: selectedLocationId,
+      weeklySchedule,
+      openTwoShifts: Boolean(locationForm.openTwoShifts),
+    });
+    if (!response?.status) {
+      setError(response?.message || "Unable to update opening hours.");
+    } else {
+      setMessage(response.message || "Opening hours updated successfully.");
+      setLocationSectionsCompleted((current) => ({ ...current, hours: true }));
+      setLocationView("address");
+    }
     setActionLoading("");
   };
 
@@ -531,6 +725,20 @@ export default function MerchantProfileWizard() {
   }
 
   const currentStep = STEPS[step];
+  const visibleStepIndex = Math.max(0, visibleSteps.findIndex((item) => item.id === currentStep.id));
+  const detailsTitle = isRestaurantService
+    ? currentStep.label
+    : step === 1
+      ? `Enter Detail ${selectedServiceName || "Service"}`
+      : currentStep.label;
+  const locationTitle = locationView === "list"
+    ? `Add ${isRestaurantService ? "Restaurants" : selectedServiceName || "Service"} Locations`
+    : locationView === "details"
+      ? "Additional info"
+      : locationView === "hours"
+        ? "Add open Hours for this location"
+        : "Type the address, or select it on the map";
+  const contentTitle = step === 4 ? "Add banner and slogan" : step === 5 ? locationTitle : detailsTitle;
 
   return (
     <section className={styles.wizardCard}>
@@ -538,18 +746,18 @@ export default function MerchantProfileWizard() {
         <div className={styles.sidebarHeading}>
           <span className={styles.sidebarEyebrow}>Merchant onboarding</span>
           <h1>Complete your profile</h1>
-          <p>Step {step + 1} of {STEPS.length}</p>
+          <p>Step {visibleStepIndex + 1} of {visibleSteps.length}</p>
         </div>
         <ol className={styles.stepList}>
-          {STEPS.map((item, index) => (
+          {visibleSteps.map((item, index) => (
             <li
               key={item.id}
-              className={`${styles.stepItem} ${index === step ? styles.stepActive : ""} ${index < step ? styles.stepDone : ""}`}
+              className={`${styles.stepItem} ${index === visibleStepIndex ? styles.stepActive : ""} ${index < visibleStepIndex ? styles.stepDone : ""}`}
             >
               <span className={styles.stepIcon}>
-                <i className={`fa-solid ${index < step ? "fa-check" : item.icon}`} />
+                <i className={`fa-solid ${index < visibleStepIndex ? "fa-check" : item.icon}`} />
               </span>
-              <span>{item.label}</span>
+              <span>{!isRestaurantService && item.id === "details" ? `${selectedServiceName || "Service"} Details` : item.label}</span>
             </li>
           ))}
         </ol>
@@ -557,8 +765,8 @@ export default function MerchantProfileWizard() {
 
       <div className={styles.stepContent}>
         <div className={styles.mobileProgress}>
-          <span>Step {step + 1} of {STEPS.length}</span>
-          <div><span style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} /></div>
+          <span>Step {visibleStepIndex + 1} of {visibleSteps.length}</span>
+          <div><span style={{ width: `${((visibleStepIndex + 1) / visibleSteps.length) * 100}%` }} /></div>
         </div>
 
         <header className={styles.contentHeader}>
@@ -567,7 +775,7 @@ export default function MerchantProfileWizard() {
           </button>
           <div>
             <span className={styles.contentEyebrow}>Profile completion</span>
-            <h2>{currentStep.label}</h2>
+            <h2>{contentTitle}</h2>
           </div>
         </header>
 
@@ -578,7 +786,8 @@ export default function MerchantProfileWizard() {
           {step === 0 && (
             <div>
               <p className={styles.helperText}>Select every restaurant type your business provides.</p>
-              <div className={styles.optionGrid}>
+               {loadingSubServices && <p className={styles.emptyState}>Loading restaurant types...</p>}
+               {!loadingSubServices && <div className={styles.optionGrid}>
                 {subServices.map((service) => {
                   const selected = form.serviceSubcategoryIds.includes(service._id);
                   return (
@@ -593,20 +802,20 @@ export default function MerchantProfileWizard() {
                     </button>
                   );
                 })}
-              </div>
-              {!subServices.length && <p className={styles.emptyState}>No restaurant types are available for this service.</p>}
+              </div>}
+              {!loadingSubServices && !subServices.length && !error && <p className={styles.emptyState}>No restaurant types are available for this service.</p>}
             </div>
           )}
 
           {step === 1 && (
             <div className={styles.formStack}>
               <label className={styles.fieldLabel}>
-                Restaurant name
-                <input className={styles.input} value={form.serviceName} onChange={(event) => updateField("serviceName", event.target.value)} placeholder="Enter restaurant name" />
+                {isRestaurantService ? "Restaurant name" : "Title"}
+                <input className={styles.input} value={form.serviceName} onChange={(event) => updateField("serviceName", event.target.value)} placeholder={isRestaurantService ? "Enter restaurant name" : "A Title"} />
               </label>
               <label className={styles.fieldLabel}>
                 Description
-                <textarea className={styles.textarea} value={form.serviceDescription} onChange={(event) => updateField("serviceDescription", event.target.value)} placeholder="Tell customers about your restaurant" />
+                <textarea className={styles.textarea} value={form.serviceDescription} onChange={(event) => updateField("serviceDescription", event.target.value)} placeholder={isRestaurantService ? "Tell customers about your restaurant" : "Enter Description"} />
               </label>
             </div>
           )}
@@ -641,45 +850,106 @@ export default function MerchantProfileWizard() {
 
           {step === 4 && (
             <div className={styles.formStack}>
-              <UploadField label="Restaurant Banner Image" name="bannerImage" file={files.bannerImage} existingUrl={existingFiles.bannerImage} onChange={(name, file) => setFiles((current) => ({ ...current, [name]: file }))} />
-              {existingFiles.bannerImage && !files.bannerImage && <img className={styles.bannerPreview} src={existingFiles.bannerImage} alt="Current restaurant banner" />}
-              <label className={styles.fieldLabel}>Slogan<input className={styles.input} value={form.serviceSlogan} onChange={(event) => updateField("serviceSlogan", event.target.value)} placeholder="Add your restaurant slogan" /></label>
+              <BannerUploadField
+                file={files.bannerImage}
+                existingUrl={existingFiles.bannerImage}
+                onChange={(file) => setFiles((current) => ({ ...current, bannerImage: file }))}
+              />
+              <label className={styles.fieldLabel}>Add Slogan<input className={styles.input} value={form.serviceSlogan} onChange={(event) => updateField("serviceSlogan", event.target.value)} placeholder="Enter slogan" /></label>
             </div>
           )}
 
           {step === 5 && (
             <div>
-              <div className={styles.sectionToolbar}>
-                <p className={styles.helperText}>Add every restaurant branch or service location.</p>
-                <button type="button" className={styles.addButton} onClick={() => setShowLocationForm((open) => !open)}><i className="fa-solid fa-plus" /> Add location</button>
-              </div>
-              {showLocationForm && (
-                <div className={styles.inlineEditor}>
+              {locationView === "list" && (
+                <>
+                  <div className={styles.cardList}>
+                    {locations.map((location, index) => (
+                      <button
+                        type="button"
+                        className={`${styles.listCard} ${styles.locationCardButton}`}
+                        key={location._id || `${location.addressName}-${index}`}
+                        onClick={() => openLocationDetails(location)}
+                        disabled={actionLoading === `open-location-${getId(location)}`}
+                      >
+                        <span className={styles.listIcon}><i className="fa-solid fa-location-dot" /></span>
+                        <div><strong>{location.addressName || `Location ${index + 1}`}</strong><p>{location.address || "Address not provided"}</p></div>
+                        <i className="fa-solid fa-chevron-right" />
+                      </button>
+                    ))}
+                    {!locations.length && <p className={styles.emptyState}>No locations added yet.</p>}
+                  </div>
+                  <div className={styles.locationAddRow}>
+                    <button type="button" className={styles.floatingAddButton} onClick={openNewLocation} aria-label="Add location"><i className="fa-solid fa-plus" /></button>
+                  </div>
+                </>
+              )}
+
+              {locationView === "address" && (
+                <div className={styles.formStack}>
                   <div className={styles.formGrid}>
                     <label className={styles.fieldLabel}>Location name<input className={styles.input} value={locationForm.addressName} onChange={(event) => updateLocationField("addressName", event.target.value)} placeholder="e.g. Downtown branch" /></label>
-                    <label className={styles.fieldLabel}>Location phone<input className={styles.input} value={locationForm.locationPhone} onChange={(event) => updateLocationField("locationPhone", event.target.value)} placeholder="Phone number" /></label>
-                    <label className={`${styles.fieldLabel} ${styles.fullWidth}`}>Full address<textarea className={styles.smallTextarea} value={locationForm.address} onChange={(event) => updateLocationField("address", event.target.value)} placeholder="Enter complete address" /></label>
-                    <label className={styles.fieldLabel}>Latitude<input className={styles.input} type="number" step="any" value={locationForm.lat} onChange={(event) => updateLocationField("lat", event.target.value)} /></label>
-                    <label className={styles.fieldLabel}>Longitude<input className={styles.input} type="number" step="any" value={locationForm.long} onChange={(event) => updateLocationField("long", event.target.value)} /></label>
-                    <label className={styles.fieldLabel}>Capacity<input className={styles.input} type="number" min="0" value={locationForm.capacity} onChange={(event) => updateLocationField("capacity", event.target.value)} placeholder="Guest capacity" /></label>
-                    <label className={styles.fieldLabel}>Floor plan<input className={styles.input} value={locationForm.floorPlan} onChange={(event) => updateLocationField("floorPlan", event.target.value)} placeholder="Floor plan details or URL" /></label>
                   </div>
+                  <LocationMapPicker
+                    address={locationForm.address}
+                    lat={locationForm.lat}
+                    lng={locationForm.long}
+                    onSelect={(selection) => setLocationForm((current) => ({ ...current, ...selection }))}
+                  />
+                  <button type="button" className={styles.secondaryButton} onClick={useCurrentLocation} disabled={actionLoading === "geolocation"}><i className="fa-solid fa-location-crosshairs" /> Use current location</button>
+                  <button type="button" className={`${styles.locationMenuButton} ${locationSectionsCompleted.details ? styles.locationMenuCompleted : ""}`} onClick={() => setLocationView("details")}>Add more details for this location <i className={`fa-solid ${locationSectionsCompleted.details ? "fa-check" : "fa-chevron-right"}`} /></button>
+                  <button type="button" className={`${styles.locationMenuButton} ${locationSectionsCompleted.hours ? styles.locationMenuCompleted : ""}`} onClick={() => setLocationView("hours")}>Add open hours for this location <i className={`fa-solid ${locationSectionsCompleted.hours ? "fa-check" : "fa-chevron-right"}`} /></button>
+                  <button
+                    type="button"
+                    className={`${styles.locationMenuButton} ${locationSectionsCompleted.photos ? styles.locationMenuCompleted : ""}`}
+                    onClick={() => setError("Photo upload will be available when the location media API is connected.")}
+                  >
+                    Add photos for this location <i className={`fa-solid ${locationSectionsCompleted.photos ? "fa-check" : "fa-chevron-right"}`} />
+                  </button>
                   <div className={styles.editorActions}>
-                    <button type="button" className={styles.secondaryButton} onClick={useCurrentLocation} disabled={actionLoading === "geolocation"}><i className="fa-solid fa-location-crosshairs" /> Use current coordinates</button>
-                    <button type="button" className={styles.primaryButton} onClick={handleAddLocation} disabled={actionLoading === "location"}>{actionLoading === "location" ? "Adding..." : "Add location"}</button>
+                    <button type="button" className={styles.secondaryButton} onClick={() => setLocationView("list")}>Cancel</button>
+                    {!selectedLocationId && <button type="button" className={styles.primaryButton} onClick={saveLocationDetails} disabled={actionLoading === "location"}>{actionLoading === "location" ? "Saving..." : "Save location"}</button>}
+                    {selectedLocationId && <button type="button" className={styles.primaryButton} onClick={() => setLocationView("list")}>Save</button>}
                   </div>
                 </div>
               )}
-              <div className={styles.cardList}>
-                {locations.map((location, index) => (
-                  <article className={styles.listCard} key={location._id || `${location.addressName}-${index}`}>
-                    <span className={styles.listIcon}><i className="fa-solid fa-location-dot" /></span>
-                    <div><strong>{location.addressName || `Location ${index + 1}`}</strong><p>{location.address || "Address not provided"}</p></div>
-                    {location.capacity !== null && location.capacity !== undefined && <span className={styles.metaBadge}>{location.capacity} guests</span>}
-                  </article>
-                ))}
-                {!locations.length && <p className={styles.emptyState}>No restaurant locations added yet.</p>}
-              </div>
+
+              {locationView === "details" && (
+                <div className={styles.formStack}>
+                  <label className={styles.fieldLabel}>Capacity<input className={styles.input} type="number" min="0" value={locationForm.capacity} onChange={(event) => updateLocationField("capacity", event.target.value)} placeholder="200" /></label>
+                  <label className={styles.fieldLabel}>Floorplan<input className={styles.input} value={locationForm.floorPlan} onChange={(event) => updateLocationField("floorPlan", event.target.value)} placeholder="Link to floorplan" /></label>
+                  <label className={styles.fieldLabel}>Phone<input className={styles.input} value={locationForm.locationPhone} onChange={(event) => updateLocationField("locationPhone", event.target.value)} placeholder="884763546" /></label>
+                  <div className={styles.editorActions}>
+                    <button type="button" className={styles.secondaryButton} onClick={() => setLocationView("address")}>Back</button>
+                    <button type="button" className={styles.primaryButton} onClick={saveLocationDetails} disabled={actionLoading === "location-details"}>{actionLoading === "location-details" ? "Saving..." : "Save"}</button>
+                  </div>
+                </div>
+              )}
+
+              {locationView === "hours" && (
+                <div className={styles.formStack}>
+                  <label className={styles.switchRow}>
+                    <span><strong>Open two shifts</strong><small>Configure morning and evening hours.</small></span>
+                    <input type="checkbox" checked={locationForm.openTwoShifts} onChange={(event) => updateLocationField("openTwoShifts", event.target.checked)} />
+                    <span className={styles.switchControl} />
+                  </label>
+                  <div className={styles.scheduleTable}>
+                    {weeklySchedule.map((schedule, index) => (
+                      <div className={styles.scheduleRow} key={schedule.day}>
+                        <strong>{schedule.day}</strong>
+                        <label>Morning from<input type="time" value={schedule.morning.from} onChange={(event) => updateScheduleField(index, "morning", "from", event.target.value)} /></label>
+                        <label>Morning to<input type="time" value={schedule.morning.to} onChange={(event) => updateScheduleField(index, "morning", "to", event.target.value)} /></label>
+                        <label>Evening from<input type="time" value={schedule.evening.from} onChange={(event) => updateScheduleField(index, "evening", "from", event.target.value)} /></label>
+                        <label>Evening to<input type="time" value={schedule.evening.to} onChange={(event) => updateScheduleField(index, "evening", "to", event.target.value)} /></label>
+                      </div>
+                    ))}
+                  </div>
+                  <div className={styles.editorActions}>
+                    <button type="button" className={styles.secondaryButton} onClick={() => setLocationView("address")}>Cancel</button>
+                    <button type="button" className={styles.primaryButton} onClick={saveOpeningHours} disabled={actionLoading === "opening-hours"}>{actionLoading === "opening-hours" ? "Saving..." : "Submit"}</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -102,6 +102,11 @@ export default function SignupPage() {
       });
 
       if (response?.status) {
+        const selectedService = servicesList.find((service) => service._id === form.serviceId);
+        localStorage.setItem("eventuna-signup-service-id", form.serviceId);
+        if (selectedService?.servicesName) {
+          localStorage.setItem("eventuna-signup-service-name", selectedService.servicesName);
+        }
         setSuccessMsg(response.message || "OTP sent successfully.");
         const userId = response.userId || "";
         setTimeout(() => {

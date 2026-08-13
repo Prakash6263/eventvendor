@@ -236,8 +236,9 @@ export const updateMerchantProfileApi = async (payload) => {
   });
 };
 
-export const getMerchantLocationsApi = async () => {
-  return await apiRequest("https://eventuna.com/api/merchant/location", {
+export const getMerchantLocationsApi = async ({ locationId } = {}) => {
+  const query = locationId ? `?${new URLSearchParams({ locationId }).toString()}` : "";
+  return await apiRequest(`https://eventuna.com/api/merchant/location${query}`, {
     method: "GET",
   });
 };

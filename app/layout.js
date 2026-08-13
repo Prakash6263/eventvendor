@@ -23,6 +23,7 @@ export default function RootLayout({ children }) {
         <link href="/vendor/OwlCarousel/assets/owl.theme.default.min.css" rel="stylesheet" />
         <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
         <link href="/vendor/bootstrap-select/dist/css/bootstrap-select.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
       </head>
       <body className="d-flex flex-column min-vh-100">
         <MerchantAuthProvider>{children}</MerchantAuthProvider>

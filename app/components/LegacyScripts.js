@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 const legacyScriptSources = [
+  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
   "/js/jquery.min.js",
   "/vendor/bootstrap/js/bootstrap.bundle.min.js",
   "/vendor/OwlCarousel/owl.carousel.js",

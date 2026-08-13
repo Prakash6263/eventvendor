@@ -320,6 +320,18 @@
 .uploadIcon { width: 46px; height: 46px; display: grid; place-items: center; color: #5368ff; border: 2px solid currentColor; border-radius: 50%; font-size: 19px; }
 .uploadHint { max-width: 190px; color: #7b8798; font-size: 11px; line-height: 1.4; word-break: break-word; }
 
+.bannerUploadCard {
+  min-height: 180px;
+}
+
+.bannerUploadPreview {
+  width: min(100%, 260px);
+  height: 110px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #dfe4ed;
+}
+
 .bannerPreview {
   width: 100%;
   max-height: 210px;
@@ -337,6 +349,84 @@
 }
 
 .sectionToolbar .helperText { margin-bottom: 0; }
+
+.locationCardButton {
+  width: 100%;
+  color: inherit;
+  text-align: left;
+}
+
+.locationCardButton > i:last-child {
+  margin-left: auto;
+  color: #778399;
+}
+
+.locationAddRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.floatingAddButton {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  border: 0;
+  border-radius: 50%;
+  background: #5368ff;
+  box-shadow: 0 9px 22px rgba(83, 104, 255, .3);
+}
+
+.floatingAddButton:hover { background: #3e56f0; }
+
+.locationMenuButton {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  color: #5368ff;
+  border: 1px solid #dfe4ed;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+}
+
+.locationMenuButton:hover:not(:disabled) { border-color: #7888f7; background: #f5f7ff; }
+.locationMenuButton:disabled { color: #a7afbd; cursor: not-allowed; }
+
+.locationMenuCompleted,
+.locationMenuCompleted:hover:not(:disabled),
+.locationMenuCompleted:disabled {
+  color: #fff;
+  border-color: #5368ff;
+  background: #5368ff;
+  opacity: 1;
+}
+
+.scheduleTable {
+  overflow: auto;
+  border: 1px solid #e1e5ed;
+  border-radius: 12px;
+}
+
+.scheduleRow {
+  min-width: 720px;
+  display: grid;
+  grid-template-columns: 120px repeat(4, minmax(120px, 1fr));
+  align-items: end;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.scheduleRow:last-child { border-bottom: 0; }
+.scheduleRow > strong { align-self: center; color: #3349bd; }
+.scheduleRow label { display: flex; flex-direction: column; gap: 5px; color: #64748b; font-size: 11px; font-weight: 700; }
+.scheduleRow input { height: 40px; padding: 7px 9px; border: 1px solid #dfe4ed; border-radius: 8px; }
 
 .addButton,
 .primaryButton,
@@ -554,4 +644,3 @@
   .navigation button { width: 100%; }
   .metaBadge { margin-left: 0; }
 }
-

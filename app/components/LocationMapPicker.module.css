@@ -1,0 +1,10 @@
+.wrapper { position: relative; }
+.searchBox { display: flex; align-items: center; gap: 10px; padding: 0 13px; border: 1px solid #dfe4ed; border-radius: 10px; background: #fff; }
+.searchBox input { width: 100%; height: 46px; border: 0; outline: 0; background: transparent; }
+.suggestions { position: absolute; z-index: 1001; top: 50px; width: 100%; overflow: hidden; border: 1px solid #e1e5ed; border-radius: 10px; background: #fff; box-shadow: 0 10px 25px rgba(15, 23, 42, .13); }
+.suggestions button { width: 100%; display: flex; flex-direction: column; gap: 3px; padding: 10px 13px; text-align: left; border: 0; border-bottom: 1px solid #eef1f5; background: #fff; }
+.suggestions button:hover { background: #f5f7ff; }
+.suggestions strong { color: #273246; font-size: 13px; }
+.suggestions span { color: #718096; font-size: 11px; line-height: 1.35; }
+.map { position: relative; z-index: 0; width: 100%; height: 290px; margin-top: 12px; overflow: hidden; border: 1px solid #dfe4ed; border-radius: 12px; background: #eef2f7; }
+.mapMessage { position: absolute; z-index: 2; top: 115px; left: 50%; display: flex; align-items: center; gap: 8px; padding: 10px 14px; color: #475569; border: 1px solid #dfe4ed; border-radius: 9px; background: rgba(255,255,255,.94); transform: translateX(-50%); }

@@ -49,6 +49,8 @@ export const clearAuthData = () => {
   if (typeof window !== "undefined") {
     localStorage.removeItem("merchant_token");
     localStorage.removeItem("merchant_info");
+    localStorage.removeItem("eventuna-signup-service-id");
+    localStorage.removeItem("eventuna-signup-service-name");
     clearUserScopedData();
   }
 };

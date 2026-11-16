@@ -9,7 +9,6 @@ export default function Footer() {
             © 2026, <strong>Eventuna</strong>. All rights reserved.
           </p>
           <nav className="d-flex flex-wrap justify-content-center gap-4" aria-label="Legal links">
-            <Link href="/about" className="footer-policy-link">About Us</Link>
             <Link href="/privacy" className="footer-policy-link">Privacy Policy</Link>
             <Link href="/terms" className="footer-policy-link">Terms &amp; Conditions</Link>
           </nav>

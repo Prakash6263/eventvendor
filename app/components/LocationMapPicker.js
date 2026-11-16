@@ -39,14 +39,14 @@ export default function LocationMapPicker({ address, lat, lng, onSelect }) {
       const data = await response.json();
       const fullAddress = data?.display_name || `${latitude}, ${longitude}`;
       setQuery(fullAddress);
-      onSelectRef.current({
+      onSelectRef.current?.({
         addressName: getLocationName(data),
         address: fullAddress,
         lat: latitude,
         long: longitude,
       });
     } catch {
-      onSelectRef.current({ address: `${latitude}, ${longitude}`, lat: latitude, long: longitude });
+      onSelectRef.current?.({ address: `${latitude}, ${longitude}`, lat: latitude, long: longitude });
     }
   };
 
@@ -137,7 +137,11 @@ export default function LocationMapPicker({ address, lat, lng, onSelect }) {
     setSuggestions([]);
     markerRef.current?.setLatLng([latitude, longitude]);
     mapRef.current?.setView([latitude, longitude], 15);
-    onSelect({ addressName: getLocationName(item), address: fullAddress, lat: latitude, long: longitude });
+    if (typeof onSelectRef.current === "function") {
+      onSelectRef.current({ addressName: getLocationName(item), address: fullAddress, lat: latitude, long: longitude });
+    } else if (typeof onSelect === "function") {
+      onSelect({ addressName: getLocationName(item), address: fullAddress, lat: latitude, long: longitude });
+    }
   };
 
   return (

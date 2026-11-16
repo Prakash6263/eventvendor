@@ -1,342 +1,249 @@
 .page {
   min-height: calc(100vh - 80px);
-  padding: 130px 24px 80px;
+  padding: 110px 16px 60px;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  overflow-x: hidden;
+  align-items: center;
+  background: #f7f9fd;
 }
 
-.phonePanel {
-  box-sizing: border-box;
+.card {
   width: 100%;
-  max-width: 1040px;
-  background: #fff;
-  border: 1px solid #e3e3e3;
-  border-radius: 15px;
-  padding: 32px 36px 36px;
-  box-shadow: 0 14px 40px rgba(18, 28, 45, 0.08);
+  max-width: 440px;
+  background: #ffffff;
+  border: 1px solid #eef1f6;
+  border-radius: 24px;
+  padding: 32px 28px 36px;
+  box-shadow: 0 10px 35px rgba(24, 38, 70, 0.06);
+  position: relative;
+  box-sizing: border-box;
 }
 
-.phonePanel *,
-.phonePanel *::before,
-.phonePanel *::after {
+.card *,
+.card *::before,
+.card *::after {
   box-sizing: border-box;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .backButton {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
   background: transparent;
-  color: #111;
+  color: #111827;
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  font-size: 14px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: opacity 0.2s;
 }
 
-.phonePanel .title {
-  margin: 9px 0 20px;
-  color: #111;
-  font-size: 23px;
-  line-height: 1.25;
+.backButton:hover {
+  opacity: 0.7;
+}
+
+.title {
+  margin: 0 0 24px;
+  color: #111827;
+  font-size: 26px;
   font-weight: 800;
-  letter-spacing: 0;
-  text-align: left;
-  white-space: normal;
-  overflow-wrap: break-word;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .form {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 24px 48px;
-  align-items: start;
-}
-
-.detailsColumn {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 15px;
 }
 
-.field {
-  height: 48px;
+.inputGroup {
+  height: 52px;
   width: 100%;
-  border: 1px solid #cfcfcf;
-  border-radius: 6px;
-  background: #fff;
+  border: 1.5px solid #dce2fa;
+  border-radius: 26px;
+  background: #ffffff;
   display: flex;
   align-items: center;
-  padding: 0 12px;
-  color: #8b8b8b;
+  padding: 0 18px;
+  gap: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(82, 96, 248, 0.02);
 }
 
-.field:focus-within {
-  border-color: #3e56f0;
-  box-shadow: 0 0 0 2px rgba(62, 86, 240, 0.1);
+.inputGroup:focus-within {
+  border-color: #5260f8;
+  box-shadow: 0 0 0 3px rgba(82, 96, 248, 0.12);
 }
 
-.field > i {
-  width: 17px;
-  flex: 0 0 17px;
-  font-size: 13px;
-  color: #8e9299;
+.inputIcon {
+  color: #8f9bb3;
+  font-size: 16px;
+  flex-shrink: 0;
+  width: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.field input,
-.field select {
+.inputField {
+  flex: 1;
   min-width: 0;
   height: 100%;
   border: 0;
   outline: 0;
   background: transparent;
-  color: #111;
-  font-size: 14px;
-  letter-spacing: 0;
+  color: #111827;
+  font-size: 15px;
 }
 
-.field input {
+.inputField::placeholder {
+  color: #9ca3af;
+}
+
+.phoneGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex: 1;
-  padding: 0 8px;
+  min-width: 0;
+  height: 100%;
 }
 
-.field input::placeholder {
-  color: #9b9b9b;
-  opacity: 1;
-}
-
-.phoneField {
-  display: flex !important;
-  align-items: center !important;
-}
-
-.phoneField select {
-  flex: 0 0 100px !important;
-  width: 100px !important;
-  max-width: 100px !important;
-  min-width: 0 !important;
-  padding: 0 4px 0 6px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  border: 0 !important;
-  border-right: 1px solid #ddd !important;
-  margin-right: 6px !important;
-  background: transparent !important;
-  color: #111 !important;
-  cursor: pointer !important;
-  outline: none !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-}
-
-.phoneField input {
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-  width: 100% !important;
-  padding: 0 8px !important;
+.phonePrefix {
+  color: #111827;
+  font-size: 15px;
+  font-weight: 700;
+  padding-right: 4px;
+  user-select: none;
+  flex-shrink: 0;
 }
 
 .eyeButton {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
   border: 0;
-  padding: 0;
   background: transparent;
-  color: #8e9299;
-  font-size: 13px;
-}
-
-.services {
-  border: 0;
-  padding: 0;
-  margin: 0;
-}
-
-.serviceGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 3px 18px;
-}
-
-.services legend {
-  float: none;
-  width: auto;
-  margin: 0 0 13px;
-  color: #111;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0;
-}
-
-.serviceOption {
-  min-height: 32px;
-  padding: 3px 5px 3px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  color: #111;
-  font-size: 12px;
+  color: #8f9bb3;
+  font-size: 15px;
   cursor: pointer;
-  position: relative;
-  padding-right: 32px;
-}
-
-.serviceOption input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.radioMark {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
-  border: 1.5px solid #3e56f0;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.serviceOption input:checked + .radioMark::after {
-  content: "";
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #3e56f0;
-}
-
-.submitButton {
-  height: 50px;
-  width: 220px;
-  margin-top: 0;
-  padding: 0 18px;
-  border: 0;
-  border-radius: 6px;
-  color: #fff;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: 700;
+  transition: color 0.15s;
 }
 
-.formActions {
-  grid-column: 1 / -1;
-  padding-top: 4px;
-  border-top: 1px solid #ececec;
+.eyeButton:hover {
+  color: #5260f8;
+}
+
+.submitButton {
+  height: 54px;
+  width: 100%;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 27px;
+  background: #5260f8;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  padding: 0 20px 0 28px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(82, 96, 248, 0.32);
+  transition: all 0.2s ease;
+}
+
+.submitText {
+  flex: 1;
+  text-align: center;
+  padding-left: 18px;
+}
+
+.arrowCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #4352e6;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(82, 96, 248, 0.4);
 }
 
 .submitButton:disabled {
   opacity: 0.65;
+  cursor: not-allowed;
 }
 
-.loginLink {
-  margin: 0;
+.footerText {
+  margin: 22px 0 0;
   text-align: center;
-  color: #747474;
-  font-size: 13px;
+  color: #6b7280;
+  font-size: 14px;
 }
 
-.loginLink a {
-  color: #3e56f0;
+.footerLink {
+  color: #5260f8;
   font-weight: 700;
   text-decoration: none;
+  margin-left: 4px;
+  transition: opacity 0.15s;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
 }
 
 .errorMessage,
 .successMessage {
-  border-radius: 6px;
-  padding: 9px 11px;
-  margin-bottom: 12px;
-  font-size: 12px;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .errorMessage {
-  color: #a71924;
-  background: #fff0f1;
-  border: 1px solid #f4c9cd;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
 }
 
 .successMessage {
-  color: #12612d;
-  background: #effbf3;
-  border: 1px solid #c6e9d1;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
 }
 
 @media (max-width: 575px) {
   .page {
-    padding: 0;
-    background: #fff;
+    padding: 20px 12px 40px;
+    background: #ffffff;
   }
 
-  .phonePanel {
-    max-width: none;
-    min-height: 100vh;
+  .card {
     border: 0;
-    border-radius: 0;
-    padding: 38px 28px 30px !important;
     box-shadow: none;
-  }
-
-  .form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .detailsColumn {
-    gap: 10px;
-  }
-
-  .phonePanel .title {
-    margin-top: 7px;
-    margin-bottom: 20px !important;
-    font-size: 20px !important;
-    text-align: left !important;
-  }
-
-  .field {
-    height: 46px;
-  }
-
-  .services {
-    margin-top: 16px;
-  }
-
-  .serviceGrid {
-    display: block;
-  }
-
-  .serviceOption {
-    min-height: 31px;
-    padding-left: 10px;
-  }
-
-  .formActions {
-    width: 100%;
-    padding-top: 8px;
-    border-top: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .submitButton {
-    width: 100%;
+    padding: 16px 8px;
   }
 }

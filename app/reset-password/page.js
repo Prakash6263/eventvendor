@@ -34,8 +34,9 @@ export default function ResetPasswordPage() {
       const res = await authService.forgotPassword({ email });
       if (res && res.status) {
         setSuccessMsg(res.message || "OTP code sent to your email!");
-        if (res.userId) {
-          setUserId(res.userId);
+        const extractedUserId = res.userId || res.merchantId || res.data?._id || res.data?.userId || email;
+        if (extractedUserId) {
+          setUserId(extractedUserId);
         }
         setTimeout(() => {
           setStep(2);

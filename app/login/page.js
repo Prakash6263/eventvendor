@@ -28,16 +28,23 @@ export default function LoginPage() {
       const res = await authService.login({ email, password });
 
       if (res && res.status) {
-        const profileResponse = await authService.getMerchantProfile();
-        if (!profileResponse?.status || !profileResponse?.data) {
-          setErrorMsg(profileResponse?.message || "Unable to load your merchant profile.");
-          return;
+        let destination = null;
+        try {
+          const profileResponse = await authService.getMerchantProfile();
+          if (profileResponse?.status && profileResponse?.data) {
+            destination = getApplicationRoute(profileResponse.data);
+          }
+        } catch (e) {
+          console.warn("Could not fetch profile during login, falling back to login payload status", e);
         }
 
-        const destination = getApplicationRoute(profileResponse.data);
         if (!destination) {
-          setErrorMsg("Your merchant application status is unavailable. Please contact support.");
-          return;
+          destination = getApplicationRoute(res) || getApplicationRoute(res?.data) || "/";
+        }
+
+        // If merchant application is approved, route to Congratulations screen (matches iOS flow)
+        if (destination === "/") {
+          destination = "/congratulations";
         }
 
         setSuccessMsg(res.message || "Login successful!");

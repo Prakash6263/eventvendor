@@ -1,9 +1,11 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: clip;
   scroll-behavior: auto;
 }
+
+body {
+  overflow-y: visible !important;
 
 body {
   margin: 0;
@@ -261,4 +263,262 @@ a.btn[style*="color: white"]:focus {
     width: 72px;
     height: 72px;
   }
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* ==========================================================================
+   Modern Professional SaaS UI Enhancements
+   ========================================================================== */
+
+/* ── Soft Badges & Live Status Dots (Apple HIG / Ultra-Professional) ────── */
+.badge-soft-success {
+  background: #f0fdf4 !important;
+  color: #166534 !important;
+  border: 1px solid rgba(22, 163, 74, 0.15) !important;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  letter-spacing: -0.1px;
+}
+
+.badge-soft-warning {
+  background: #fffbeb !important;
+  color: #92400e !important;
+  border: 1px solid rgba(245, 158, 11, 0.15) !important;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  letter-spacing: -0.1px;
+}
+
+.badge-soft-danger {
+  background: #fef2f2 !important;
+  color: #991b1b !important;
+  border: 1px solid rgba(239, 68, 68, 0.15) !important;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  letter-spacing: -0.1px;
+}
+
+.badge-soft-primary {
+  background: #eff6ff !important;
+  color: #1e40af !important;
+  border: 1px solid rgba(59, 130, 246, 0.15) !important;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  letter-spacing: -0.1px;
+}
+
+.badge-soft-neutral {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  letter-spacing: -0.1px;
+}
+
+/* Pulsing Status Dot */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.status-dot-success {
+  background-color: #16a34a;
+  box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.6);
+  animation: pulseSuccess 2s infinite;
+}
+
+.status-dot-warning {
+  background-color: #f59e0b;
+}
+
+.status-dot-danger {
+  background-color: #ef4444;
+}
+
+.status-dot-primary {
+  background-color: #3b82f6;
+}
+
+@keyframes pulseSuccess {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+/* ── Modern Interactive Cards & Hover Lift ────────────────────────────────── */
+.modern-card {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
+}
+
+.modern-card:hover {
+  transform: translateY(-3px);
+  border-color: #e2e8f0;
+  box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
+}
+
+.card-image-wrap {
+  overflow: hidden;
+  border-radius: 12px;
+  position: relative;
+  background: #f1f5f9;
+}
+
+.card-image-wrap img {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.modern-card:hover .card-image-wrap img {
+  transform: scale(1.04);
+}
+
+/* ── Modern Info Tiles ────────────────────────────────────────────────────── */
+.modern-info-tile {
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.modern-info-tile:hover {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.icon-box-primary {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #5b6ef5 0%, #4338ca 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(91, 110, 245, 0.25);
+}
+
+/* ── Glassmorphism Modals ─────────────────────────────────────────────────── */
+.glass-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.glass-modal-box {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 25px 60px -12px rgba(15, 23, 42, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Button Micro-Interactions ────────────────────────────────────────────── */
+.btn-modern-primary {
+  background: linear-gradient(135deg, #5b6ef5 0%, #4338ca 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 10px 20px;
+  box-shadow: 0 4px 14px rgba(91, 110, 245, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-modern-primary:hover {
+  box-shadow: 0 6px 18px rgba(91, 110, 245, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-modern-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-modern-secondary {
+  background: #ffffff !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 10px 20px;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-modern-secondary:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  transform: translateY(-1px);
+}
+
+.btn-modern-secondary:active {
+  transform: scale(0.98);
 }

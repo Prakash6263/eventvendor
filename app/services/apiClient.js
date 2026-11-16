@@ -81,6 +81,22 @@ export const handleAuthFailure = () => {
 };
 
 export const apiRequest = async (endpoint, options = {}) => {
+  const requestWithRetry = async (requestUrl, config) => {
+    try {
+      return await fetch(requestUrl, config);
+    } catch (error) {
+      const method = String(config.method || "GET").toUpperCase();
+      if (method !== "GET") throw error;
+
+      // Profile/status checks run during page startup and can briefly overlap a
+      // connection change or backend restart. Retrying GET once avoids turning
+      // that transient failure into a broken page. Mutating requests are never
+      // retried because doing so could create duplicate data.
+      await new Promise((resolve) => globalThis.setTimeout(resolve, 400));
+      return await fetch(requestUrl, config);
+    }
+  };
+
   try {
     const isFormData = options.body instanceof FormData;
     const defaultHeaders = {};
@@ -110,7 +126,7 @@ export const apiRequest = async (endpoint, options = {}) => {
     };
 
     const requestUrl = /^https?:\/\//i.test(endpoint) ? endpoint : `${BASE_URL}${endpoint}`;
-    const response = await fetch(requestUrl, config);
+    const response = await requestWithRetry(requestUrl, config);
     const data = await response.json();
 
     if (isAuthFailureResponse(response, data)) {
@@ -123,10 +139,13 @@ export const apiRequest = async (endpoint, options = {}) => {
 
     return data;
   } catch (error) {
-    console.error(`API Request Error [${endpoint}]:`, error);
+    // Next.js dev mode promotes console.error calls to its full-screen error
+    // overlay. A handled network failure should remain a regular application
+    // state, so report it without crashing or obscuring the current page.
+    console.warn(`API request unavailable [${endpoint}]`, error?.message || error);
     return {
       status: false,
-      message: error.message || "Network error. Please try again.",
+      message: "Unable to connect to Eventuna. Please check your connection and try again.",
     };
   }
 };

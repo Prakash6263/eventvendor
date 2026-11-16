@@ -1,0 +1,196 @@
+.pageWrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  padding: 24px 16px;
+}
+
+.cardContainer {
+  background: #ffffff;
+  border-radius: 36px;
+  width: 100%;
+  max-width: 440px;
+  padding: 32px 28px 40px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+  border: 1px solid #edf2f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: center;
+}
+
+.topNav {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.backBtn {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: #1e293b;
+  cursor: pointer;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+
+.backBtn:hover {
+  transform: translateX(-3px);
+}
+
+.congratsTitle {
+  color: #10b981;
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: -0.3px;
+  margin-bottom: 24px;
+}
+
+.artworkWrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px auto 30px;
+}
+
+.checkmarkBadge {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badgeShape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 18px rgba(43, 217, 128, 0.35));
+}
+
+.dot {
+  position: absolute;
+  border-radius: 50%;
+  background: #2bd980;
+  animation: floatDot 3s ease-in-out infinite alternate;
+}
+
+.dot1 {
+  width: 22px;
+  height: 22px;
+  top: 15px;
+  left: 20px;
+  opacity: 0.9;
+}
+
+.dot2 {
+  width: 14px;
+  height: 14px;
+  top: 30px;
+  right: 25px;
+  opacity: 0.85;
+}
+
+.dot3 {
+  width: 8px;
+  height: 8px;
+  top: 10px;
+  left: 110px;
+  opacity: 0.7;
+}
+
+.dot4 {
+  width: 7px;
+  height: 7px;
+  bottom: 60px;
+  left: 15px;
+  opacity: 0.8;
+}
+
+.dot5 {
+  width: 9px;
+  height: 9px;
+  top: 90px;
+  right: 15px;
+  opacity: 0.75;
+}
+
+.dot6 {
+  width: 12px;
+  height: 12px;
+  bottom: 30px;
+  left: 60px;
+  opacity: 0.85;
+}
+
+.dot7 {
+  width: 6px;
+  height: 6px;
+  bottom: 20px;
+  right: 45px;
+  opacity: 0.6;
+}
+
+.dot8 {
+  width: 5px;
+  height: 5px;
+  top: 60px;
+  left: 10px;
+  opacity: 0.5;
+}
+
+@keyframes floatDot {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-8px) scale(1.08);
+  }
+}
+
+.textBlock {
+  margin-bottom: 36px;
+}
+
+.actionWrapper {
+  width: 100%;
+}
+
+.viewProfileBtn {
+  width: 100%;
+  background: #5b6ef5;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 10px 25px -4px rgba(91, 110, 245, 0.45);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewProfileBtn:hover {
+  background: #475be8;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -4px rgba(91, 110, 245, 0.55);
+}
+
+.viewProfileBtn:active {
+  transform: scale(0.99);
+}
+

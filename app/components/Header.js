@@ -64,7 +64,7 @@ export default function Header() {
                 <img className="logo-inverse" src="/images/logo.png" alt="Logo" />
               </div>
             </Link>
-            
+
             {/* Offcanvas Navbar */}
             <div
               className={`offcanvas offcanvas-start ${offcanvasOpen ? "show" : ""}`}

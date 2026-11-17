@@ -27,7 +27,12 @@ export const DEFAULT_FALLBACK_IMAGES = [
 ];
 
 export const isBadEventImage = (rawImg) => {
-  if (!rawImg || typeof rawImg !== "string" || !rawImg.startsWith("http")) return true;
+  if (!rawImg || typeof rawImg !== "string") return true;
+  // If it's a data URI (such as the base64 'Tap to Upload Image' button saved during app testing)
+  if (rawImg.startsWith("data:image")) {
+    return true;
+  }
+  if (!rawImg.startsWith("http") && !rawImg.startsWith("/")) return true;
   const lower = rawImg.toLowerCase();
   return (
     lower.includes("tap to upload") ||

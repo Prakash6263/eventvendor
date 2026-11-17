@@ -550,29 +550,18 @@ export default function ServicesManager() {
   const [bannerPreview, setBannerPreview] = useState("");
 
   const categorySubTypes = useMemo(() => {
+    // Always prefer live API subServices. Only use hardcoded fallback if API returned nothing.
+    if (subServices && subServices.length > 0) {
+      return subServices;
+    }
+    // Fallback: use static list only when API has no data for this category
     const currentCat =
       form.serviceName ||
       selectedService?.servicesName ||
       selectedService?.serviceName ||
       selectedService?.categoryName ||
       "";
-    const defaultTypes = getSubTypesForCategory(currentCat);
-
-    if (subServices && subServices.length > 0) {
-      const merged = [...subServices];
-      defaultTypes.forEach((def) => {
-        const exists = merged.some(
-          (m) =>
-            (m.subServicesName || m.name || "").toLowerCase().trim() ===
-            (def.subServicesName || def.name || "").toLowerCase().trim()
-        );
-        if (!exists) {
-          merged.push(def);
-        }
-      });
-      return merged;
-    }
-    return defaultTypes;
+    return getSubTypesForCategory(currentCat);
   }, [subServices, form.serviceName, selectedService]);
 
   // Locations State
@@ -632,17 +621,9 @@ export default function ServicesManager() {
         : Array.isArray(pServicesRes?.data)
         ? pServicesRes.data
         : [];
+      // If API returned valid list, use it directly. Only fall back to static data as last resort.
       if (!pList || pList.length < 2) {
-        // Fallback to all 9 official platform categories matching backend API & iOS
-        pList = DEFAULT_PLATFORM_SERVICES.map((def) => {
-          const match = pList.find(
-            (p) =>
-              p._id === def._id ||
-              (p.servicesName || p.serviceName || "").toLowerCase().trim() ===
-                (def.servicesName || "").toLowerCase().trim()
-          );
-          return match ? { ...def, ...match } : def;
-        });
+        pList = DEFAULT_PLATFORM_SERVICES;
       }
       setPlatformServices(pList);
 
@@ -949,10 +930,15 @@ export default function ServicesManager() {
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     // Load subservices, locations, categories & coupons for this service
+    // subCategoryId MUST be the platform category _id (not merchant service _id)
+    const subCategoryId =
+      targetService?.categoryId?._id ||
+      targetService?.categoryId ||
+      catId;
     try {
       setLoadingSubServices(true);
       const [subRes, locRes, catRes, coupRes] = await Promise.all([
-        authService.getSubServices({ id: catId }).catch(() => null),
+        authService.getSubServices({ id: subCategoryId }).catch(() => null),
         authService.getMerchantLocations().catch(() => null),
         authService.getProductCategories().catch(() => null),
         authService.getMerchantCoupons().catch(() => null),

@@ -19,17 +19,27 @@ const KNOWN_TAP_TO_UPLOAD_S3_IMAGES = [
   "1792057292236-150289979.jpg",
   "1768819662887-122274953.jpg",
   "1768815153715-802649822.jpg",
-  "1792569481357-649301076.jpg"
+  "1792569481357-649301076.jpg",
+  "1792585684510-755713266.jpg",
+  "1762419577291-646505357.jpg",
+  "1762419788482-142067365.jpg",
+  "1762419914789-628613777.jpg",
+  "1762420012735-780137869.jpg"
 ];
 
 export const isBadEventImage = (rawImg) => {
+  if (Array.isArray(rawImg)) rawImg = rawImg[0];
+  if (rawImg && typeof rawImg === "object" && rawImg.url) rawImg = rawImg.url;
   if (!rawImg || typeof rawImg !== "string") return true;
+  const trimmed = rawImg.trim();
+  if (trimmed === "" || trimmed.endsWith("/event/") || trimmed.endsWith("/event")) return true;
+
   // If it's a data URI (such as the base64 'Tap to Upload Image' button saved during app testing)
-  if (rawImg.startsWith("data:image")) {
+  if (trimmed.startsWith("data:image")) {
     return true;
   }
-  if (!rawImg.startsWith("http") && !rawImg.startsWith("/")) return true;
-  const lower = rawImg.toLowerCase();
+  if (!trimmed.startsWith("http") && !trimmed.startsWith("/")) return true;
+  const lower = trimmed.toLowerCase();
 
   // Check known mobile default upload button assets uploaded to S3
   if (KNOWN_TAP_TO_UPLOAD_S3_IMAGES.some((name) => lower.includes(name.toLowerCase()))) {

@@ -209,6 +209,11 @@ export default function VendorHtmlPage({ markup }) {
           ["pending", "requested", "reservation received", "new"].includes(String(d.status || "").toLowerCase().trim())
         );
         const pendingCount = pendingItems.length;
+        if (typeof window !== "undefined") {
+          window.__merchantPendingCount = pendingCount;
+          const pendingStatEl = document.getElementById("dash-stat-pending-count");
+          if (pendingStatEl) pendingStatEl.textContent = pendingCount;
+        }
 
         // Initialize Notifications (badges and /notifications page)
         initNotificationsFeature({ data, allEvents, pendingCount });

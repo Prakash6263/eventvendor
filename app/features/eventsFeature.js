@@ -1,4 +1,5 @@
 import { formatEventDate, getDateCondition, EVENT_DEFAULT_SVG, isBadEventImage } from "../utils/formatters";
+import { authService } from "../services/authService";
 
 function resolveEventImage(rawImg) {
   const isBad = isBadEventImage(rawImg);
@@ -58,7 +59,7 @@ function renderEventListHtml(eventsList) {
           <a href="/vendor-event-details?id=${eventId}" class="text-decoration-none" style="display:block;">
             <div class="modern-card d-flex align-items-center gap-3 p-3">
               <div class="card-image-wrap flex-shrink-0" style="width:72px; height:72px; border-radius:14px; position:relative; overflow:hidden; background:#f1f5f9; border:1px solid #e2e8f0;">
-                <img src="${eventImg}" alt="${event.eventTitle || 'Event'}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${fallbackImg}';" />
+                <img src="${eventImg}" alt="${event.eventTitle || 'Event'}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${fallbackImg}';" onLoad="if(this.naturalWidth && this.naturalWidth<=160 && this.naturalHeight<=120){this.src='${fallbackImg}';}" />
               </div>
               <div class="flex-grow-1 overflow-hidden">
                 <div class="d-flex align-items-center justify-content-between mb-1 gap-2">
@@ -112,6 +113,245 @@ export function initEventsFeature(eventsData = [], path) {
     const container = document.querySelector(".content-card .row.g-3, .upcoming-events-grid");
 
     if (cardParent && container) {
+      const userProfileWrapper = cardParent.closest(".user-profile-wrapper") || cardParent.parentElement;
+
+      // 1. Inject or update the Top Executive Overview (Welcome Header, KPI Cards, and Quick Hub)
+      if (userProfileWrapper && !document.getElementById("dash-overview-hub")) {
+        const merchantInfo = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("merchant_info") || "{}") : {};
+        const vendorName = merchantInfo?.fullName || merchantInfo?.name || merchantInfo?.merchantName || document.querySelector(".user-profile-sidebar-top h5, .user-profile-sidebar-top h4")?.textContent?.trim() || "Thakus Restaurant";
+        
+        const now = new Date();
+        const dateFormatted = now.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+        const pendingCount = (typeof window !== "undefined" && window.__merchantPendingCount != null) ? window.__merchantPendingCount : 0;
+        const activeServicesCount = (typeof window !== "undefined" && window.__merchantServicesCount != null) ? window.__merchantServicesCount : 4;
+
+        const overviewHubHtml = `
+          <div id="dash-overview-hub" class="mb-4">
+            <!-- 1. Executive Welcome Header -->
+            <div class="dash-welcome-section mb-4 p-4 rounded-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
+                    <span class="badge rounded-pill px-2.5 py-1 text-white fw-medium" style="background: rgba(255,255,255,0.15); font-size: 11.5px; backdrop-filter: blur(4px);">
+                      <i class="fa-solid fa-circle-check text-success me-1"></i> Verified Merchant Portal
+                    </span>
+                    <span class="text-white-50" style="font-size: 12px;"><i class="fa-regular fa-calendar me-1"></i>${dateFormatted}</span>
+                  </div>
+                  <h3 class="fw-bold text-white mb-1" style="font-family: 'Poppins', sans-serif; letter-spacing: -0.3px;">
+                    Welcome back, <span id="dash-vendor-name">${vendorName}</span> 👋
+                  </h3>
+                  <p class="text-white-50 small mb-0" style="font-size: 13px;">Manage your business performance, customer bookings, and active menu services.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <a href="/services" class="btn btn-primary rounded-pill px-3.5 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm" style="font-size: 13px; background: #4361ee; border: none;">
+                    <i class="fa-solid fa-plus"></i> Add Service
+                  </a>
+                  <a href="/reservation-list" class="btn btn-light rounded-pill px-3.5 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm text-dark" style="font-size: 13px; background: #ffffff; border: 1px solid #e2e8f0;">
+                    <i class="fa-solid fa-calendar-check text-primary"></i> Booking Requests
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. KPI Metrics / Executive Stat Cards -->
+            <div class="row g-3 mb-4" id="dash-kpi-cards">
+              <!-- Total Bookings -->
+              <div class="col-sm-6 col-lg-3">
+                <div class="dash-stat-card h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Total Bookings</span>
+                    <div class="d-flex align-items-center justify-content-center rounded-3" style="width: 38px; height: 38px; background: #eff6ff; color: #3b82f6;">
+                      <i class="fa-regular fa-calendar-days" style="font-size: 16px;"></i>
+                    </div>
+                  </div>
+                  <div class="d-flex align-items-baseline gap-2">
+                    <h3 class="fw-bold text-dark mb-0" style="font-family: 'Poppins', sans-serif; font-size: 26px;" id="dash-stat-total-events">${allEvents.length}</h3>
+                    <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background: #eef2ff; color: #4f46e5; font-size: 11px;">All Time</span>
+                  </div>
+                  <div class="text-muted small mt-2 d-flex align-items-center gap-1" style="font-size: 11.5px;">
+                    <i class="fa-solid fa-arrow-trend-up text-success"></i> Customer bookings
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pending Requests -->
+              <div class="col-sm-6 col-lg-3">
+                <a href="/reservation-list" class="text-decoration-none d-block h-100">
+                  <div class="dash-stat-card h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="text-muted fw-semibold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Pending Requests</span>
+                      <div class="d-flex align-items-center justify-content-center rounded-3" style="width: 38px; height: 38px; background: #fffbeb; color: #f59e0b;">
+                        <i class="fa-regular fa-clock" style="font-size: 16px;"></i>
+                      </div>
+                    </div>
+                    <div class="d-flex align-items-baseline gap-2">
+                      <h3 class="fw-bold text-dark mb-0" style="font-family: 'Poppins', sans-serif; font-size: 26px;" id="dash-stat-pending-count">${pendingCount}</h3>
+                      <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background: #fef3c7; color: #b45309; font-size: 11px;">Action Req.</span>
+                    </div>
+                    <div class="text-primary small mt-2 d-flex align-items-center gap-1 fw-medium" style="font-size: 11.5px;">
+                      <span>Review now</span> <i class="fa-solid fa-arrow-right" style="font-size: 10px;"></i>
+                    </div>
+                  </div>
+                </a>
+              </div>
+
+              <!-- Active Services -->
+              <div class="col-sm-6 col-lg-3">
+                <a href="/services" class="text-decoration-none d-block h-100">
+                  <div class="dash-stat-card h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="text-muted fw-semibold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Active Services</span>
+                      <div class="d-flex align-items-center justify-content-center rounded-3" style="width: 38px; height: 38px; background: #ecfdf5; color: #10b981;">
+                        <i class="fa-solid fa-utensils" style="font-size: 16px;"></i>
+                      </div>
+                    </div>
+                    <div class="d-flex align-items-baseline gap-2">
+                      <h3 class="fw-bold text-dark mb-0" style="font-family: 'Poppins', sans-serif; font-size: 26px;" id="dash-stat-active-services">${activeServicesCount}</h3>
+                      <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background: #d1fae5; color: #047857; font-size: 11px;">Live</span>
+                    </div>
+                    <div class="text-muted small mt-2 d-flex align-items-center gap-1" style="font-size: 11.5px;">
+                      <i class="fa-solid fa-check text-success"></i> Published on Eventuna
+                    </div>
+                  </div>
+                </a>
+              </div>
+
+              <!-- Completed Events -->
+              <div class="col-sm-6 col-lg-3">
+                <div class="dash-stat-card h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Completed</span>
+                    <div class="d-flex align-items-center justify-content-center rounded-3" style="width: 38px; height: 38px; background: #f5f3ff; color: #8b5cf6;">
+                      <i class="fa-solid fa-circle-check" style="font-size: 16px;"></i>
+                    </div>
+                  </div>
+                  <div class="d-flex align-items-baseline gap-2">
+                    <h3 class="fw-bold text-dark mb-0" style="font-family: 'Poppins', sans-serif; font-size: 26px;" id="dash-stat-completed">${pastEvents.length}</h3>
+                    <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background: #ede9fe; color: #6d28d9; font-size: 11px;">Fulfilled</span>
+                  </div>
+                  <div class="text-muted small mt-2 d-flex align-items-center gap-1" style="font-size: 11.5px;">
+                    <i class="fa-solid fa-circle-check" style="color: #8b5cf6;"></i> Successfully concluded
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Quick Business Management Hub -->
+            <div class="mb-4">
+              <div class="d-flex align-items-center justify-content-between mb-2.5">
+                <h6 class="fw-bold text-dark mb-0" style="font-family: 'Poppins', sans-serif; font-size: 15px;">Quick Business Hub</h6>
+                <span class="text-muted small" style="font-size: 12px;">Manage operations & settings</span>
+              </div>
+              <div class="row g-3">
+                <!-- Tile 1: Services -->
+                <div class="col-sm-6 col-lg-3">
+                  <a href="/services" class="text-decoration-none d-block h-100">
+                    <div class="dash-quick-hub-card">
+                      <div class="d-flex align-items-center gap-2.5 mb-2">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 34px; height: 34px; background: #eff6ff; color: #3b82f6;">
+                          <i class="fa-solid fa-utensils" style="font-size: 14px;"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-0" style="font-size: 13.5px;">My Services</h6>
+                      </div>
+                      <p class="text-muted mb-2 small line-clamp-2" style="font-size: 12px; line-height: 1.4;">Manage dining menus, branches, and active categories.</p>
+                      <div class="text-primary fw-semibold small d-inline-flex align-items-center gap-1" style="font-size: 12px;">
+                        <span>Manage</span> <i class="fa-solid fa-arrow-right quick-hub-arrow" style="font-size: 10px;"></i>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+
+                <!-- Tile 2: Reservations -->
+                <div class="col-sm-6 col-lg-3">
+                  <a href="/reservation-list" class="text-decoration-none d-block h-100">
+                    <div class="dash-quick-hub-card">
+                      <div class="d-flex align-items-center gap-2.5 mb-2">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 34px; height: 34px; background: #fffbeb; color: #f59e0b;">
+                          <i class="fa-solid fa-calendar-check" style="font-size: 14px;"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-0" style="font-size: 13.5px;">Reservations</h6>
+                      </div>
+                      <p class="text-muted mb-2 small line-clamp-2" style="font-size: 12px; line-height: 1.4;">Review and confirm customer table booking requests.</p>
+                      <div class="text-primary fw-semibold small d-inline-flex align-items-center gap-1" style="font-size: 12px;">
+                        <span>View list</span> <i class="fa-solid fa-arrow-right quick-hub-arrow" style="font-size: 10px;"></i>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+
+                <!-- Tile 3: Locations -->
+                <div class="col-sm-6 col-lg-3">
+                  <a href="/locations" class="text-decoration-none d-block h-100">
+                    <div class="dash-quick-hub-card">
+                      <div class="d-flex align-items-center gap-2.5 mb-2">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 34px; height: 34px; background: #ecfdf5; color: #10b981;">
+                          <i class="fa-solid fa-location-dot" style="font-size: 14px;"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-0" style="font-size: 13.5px;">Locations</h6>
+                      </div>
+                      <p class="text-muted mb-2 small line-clamp-2" style="font-size: 12px; line-height: 1.4;">Configure branch addresses, maps, and schedules.</p>
+                      <div class="text-primary fw-semibold small d-inline-flex align-items-center gap-1" style="font-size: 12px;">
+                        <span>Branches</span> <i class="fa-solid fa-arrow-right quick-hub-arrow" style="font-size: 10px;"></i>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+
+                <!-- Tile 4: Coupons -->
+                <div class="col-sm-6 col-lg-3">
+                  <a href="/coupons" class="text-decoration-none d-block h-100">
+                    <div class="dash-quick-hub-card">
+                      <div class="d-flex align-items-center gap-2.5 mb-2">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 34px; height: 34px; background: #fdf2f8; color: #ec4899;">
+                          <i class="fa-solid fa-tags" style="font-size: 14px;"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-0" style="font-size: 13.5px;">Coupons & Deals</h6>
+                      </div>
+                      <p class="text-muted mb-2 small line-clamp-2" style="font-size: 12px; line-height: 1.4;">Create special discount codes and promotional vouchers.</p>
+                      <div class="text-primary fw-semibold small d-inline-flex align-items-center gap-1" style="font-size: 12px;">
+                        <span>Promotions</span> <i class="fa-solid fa-arrow-right quick-hub-arrow" style="font-size: 10px;"></i>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        cardParent.insertAdjacentHTML("beforebegin", overviewHubHtml);
+
+        // Fetch live services count asynchronously in background
+        if (typeof authService?.getMerchantServicesList === "function") {
+          authService.getMerchantServicesList().then((res) => {
+            if (Array.isArray(res?.data)) {
+              let count = 0;
+              res.data.forEach((g) => {
+                if (Array.isArray(g.services)) count += g.services.length;
+              });
+              if (count > 0) {
+                if (typeof window !== "undefined") window.__merchantServicesCount = count;
+                const servEl = document.getElementById("dash-stat-active-services");
+                if (servEl) servEl.textContent = count;
+              }
+            }
+          }).catch(() => {});
+        }
+      } else {
+        // Update stats if hub is already mounted
+        const totalEventsEl = document.getElementById("dash-stat-total-events");
+        if (totalEventsEl) totalEventsEl.textContent = allEvents.length;
+        const completedEventsEl = document.getElementById("dash-stat-completed");
+        if (completedEventsEl) completedEventsEl.textContent = pastEvents.length;
+        const vendorNameEl = document.getElementById("dash-vendor-name");
+        if (vendorNameEl) {
+          const sidebarName = document.querySelector(".user-profile-sidebar-top h5, .user-profile-sidebar-top h4")?.textContent?.trim();
+          if (sidebarName && sidebarName !== "Vendor Name") {
+            vendorNameEl.textContent = sidebarName;
+          }
+        }
+      }
+
       // Determine initial active tab:
       // If there are upcoming events, default to 'upcoming'
       // Else if there are ongoing events, default to 'ongoing'
@@ -424,7 +664,7 @@ export function initEventsFeature(eventsData = [], path) {
 
       <!-- Event Image Banner -->
       <div class="mb-4 overflow-hidden rounded-4 border bg-light position-relative" style="height: 230px;">
-        <img src="${eventImg}" alt="${event.eventTitle || 'Event'}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${EVENT_DEFAULT_SVG}';" />
+        <img src="${eventImg}" alt="${event.eventTitle || 'Event'}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${EVENT_DEFAULT_SVG}';" onLoad="if(this.naturalWidth && this.naturalWidth<=160 && this.naturalHeight<=120){this.src='${EVENT_DEFAULT_SVG}';}" />
       </div>
 
       <!-- Title -->

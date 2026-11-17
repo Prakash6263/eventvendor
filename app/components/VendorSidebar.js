@@ -132,11 +132,9 @@ export default function VendorSidebar() {
       style={{
         background: "#ffffff",
         borderRadius: "16px",
-        padding: "24px 18px",
+        padding: "20px 16px",
         border: "1px solid #e8ecf4",
         boxShadow: "0 4px 20px -2px rgba(15, 23, 42, 0.05)",
-        maxHeight: "calc(100vh - 120px)",
-        overflowY: "auto",
       }}
     >
       {/* Profile Header Block */}

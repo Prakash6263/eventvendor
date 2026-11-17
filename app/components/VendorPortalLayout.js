@@ -8,16 +8,17 @@ export default function VendorPortalLayout({ children }) {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", background: "#f8f9fc" }}>
       <Header />
       <div style={{ display: "flex", flex: 1, overflow: "hidden", paddingTop: "96px" }}>
-        {/* Fixed Sidebar — does NOT scroll */}
+        {/* Fixed Sidebar — single sleek container, no double scrollbar */}
         <aside
           style={{
-            width: "260px",
+            width: "275px",
             flexShrink: 0,
             height: "100%",
             overflowY: "auto",
             borderRight: "1px solid #e8ecf4",
-            padding: "24px 16px",
+            padding: "16px 12px 24px 12px",
             background: "#fff",
+            scrollbarWidth: "thin",
           }}
         >
           <VendorSidebar />

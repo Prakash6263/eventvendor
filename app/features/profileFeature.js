@@ -153,7 +153,15 @@ export function initProfileFeature({ rootEl, reactRootRef, onProfileUpdate }) {
       } else if (imgDiv) {
         imgDiv.classList.remove("profile-loading");
       }
-      if (name) name.textContent = vendorName;
+      if (name) {
+        name.textContent = vendorName;
+        if (!sidebarTop.querySelector(".verified-merchant-badge")) {
+          const badge = document.createElement("div");
+          badge.className = "verified-merchant-badge";
+          badge.innerHTML = `<i class="fa-solid fa-circle-check" style="font-size:11px;"></i><span>Verified Merchant</span>`;
+          name.insertAdjacentElement("afterend", badge);
+        }
+      }
     });
 
     // Update active nav link on sidebar for current route

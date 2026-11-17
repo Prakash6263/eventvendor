@@ -125,64 +125,164 @@ a.btn[style*="color: white"]:focus {
   .event-dt-block .col-lg-3,
   .user-profile-wrapper .col-lg-3 {
     position: sticky !important;
-    top: 90px !important;
+    top: 96px !important;
     align-self: flex-start !important;
     height: fit-content !important;
     z-index: 10 !important;
   }
 
   .user-profile-sidebar {
-    position: relative !important;
-    top: auto !important;
-    width: 100% !important;
-    max-height: none !important;
-    overflow: visible !important;
-    padding: 14px !important;
+    background: #ffffff !important;
+    border-radius: 16px !important;
+    padding: 20px 16px !important;
+    border: 1px solid #e8ecf4 !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05) !important;
     margin-bottom: 0 !important;
+    overflow: visible !important;
   }
 
   .user-profile-sidebar-top {
-    margin-bottom: 8px !important;
-    padding-bottom: 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding-bottom: 18px !important;
+    margin-bottom: 16px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
   }
 
   .user-profile-img {
-    width: 72px !important;
-    height: 72px !important;
-    margin-bottom: 8px !important;
+    position: relative !important;
+    width: 92px !important;
+    height: 92px !important;
+    margin: 0 auto 12px !important;
   }
 
   .user-profile-img img {
-    width: 72px !important;
-    height: 72px !important;
+    width: 92px !important;
+    height: 92px !important;
     object-fit: cover !important;
+    border-radius: 50% !important;
+    border: 3px solid #ffffff !important;
+    box-shadow: 0 8px 24px -4px rgba(79, 70, 229, 0.25), 0 0 0 2px #e0e7ff !important;
+  }
+
+  .user-profile-img button {
+    position: absolute !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
+    background: #4f46e5 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+    display: grid !important;
+    place-items: center !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    transition: transform 0.15s ease, background 0.15s ease !important;
   }
 
   .user-profile-sidebar-top h5 {
-    margin-bottom: 0 !important;
-    font-size: 15px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    margin: 0 0 4px 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  .user-profile-sidebar-list {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
   }
 
   .user-profile-sidebar-list li {
-    margin: 3px 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
   }
 
   .user-profile-sidebar-list li a,
+  .user-profile-sidebar-list a.user-profile-sidebar-link {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 10px 14px !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #475569 !important;
+    background: transparent !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .user-profile-sidebar-list li a:hover,
+  .user-profile-sidebar-list a.user-profile-sidebar-link:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+  }
+
+  .user-profile-sidebar-list li a.active,
   .user-profile-sidebar-list .active {
-    padding: 8px 12px !important;
-    font-size: 13px !important;
+    background: #3e56f0 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+  }
+
+  .user-profile-sidebar-list li a.active i,
+  .user-profile-sidebar-list .active i {
+    color: #ffffff !important;
   }
 }
 
-/* Compact Layout Spacing */
+/* ── Unified Layout: Eliminate Legacy Party Banner Across All Pages ── */
 .hero-banner {
-  padding-top: 20px !important;
-  padding-bottom: 20px !important;
+  display: none !important;
 }
 
-.event-dt-block {
-  padding-top: 24px !important;
-  padding-bottom: 40px !important;
+.wrapper {
+  margin-top: 0 !important;
+}
+
+body {
+  background: #f8f9fc !important;
+}
+
+.event-dt-block,
+.user-profile-wrapper {
+  padding-top: 96px !important;
+  padding-bottom: 50px !important;
+  background: #f8f9fc !important;
+}
+
+/* Unified Modern Card Styling */
+.content-card,
+.user-profile-card {
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  border: 1px solid #e8ecf4 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05) !important;
+  padding: 24px 28px !important;
+}
+
+.verified-merchant-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 3px 10px !important;
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.2px !important;
+  margin-top: 4px !important;
 }
 
 @media (max-width: 575px) {

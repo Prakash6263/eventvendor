@@ -254,10 +254,20 @@ export default function VendorHtmlPage({ markup }) {
         )
     : "";
 
+  // Ensure balanced div tags in cleaned HTML to prevent hydration DOM mismatches
+  let balancedContent = contentCleaned;
+  if (balancedContent) {
+    const openCount = (balancedContent.match(/<div\b[^>]*>/gi) || []).length;
+    const closeCount = (balancedContent.match(/<\/div>/gi) || []).length;
+    if (openCount > closeCount) {
+      balancedContent += "</div>".repeat(openCount - closeCount);
+    }
+  }
+
   return (
     <>
       <Header />
-      <div ref={containerRef} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: contentCleaned }} />
+      <div ref={containerRef} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: balancedContent }} />
       <Footer />
     </>
   );

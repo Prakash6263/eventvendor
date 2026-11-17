@@ -13,6 +13,15 @@ export const EVENT_DEFAULT_SVG = "data:image/svg+xml;charset=UTF-8," + encodeURI
 // Deprecated: No fake demo party photos used anywhere in the application
 export const DEFAULT_FALLBACK_IMAGES = [];
 
+const KNOWN_TAP_TO_UPLOAD_S3_IMAGES = [
+  "1793172724910-753443171.jpg",
+  "1791957430661-321613915.jpg",
+  "1792057292236-150289979.jpg",
+  "1768819662887-122274953.jpg",
+  "1768815153715-802649822.jpg",
+  "1792569481357-649301076.jpg"
+];
+
 export const isBadEventImage = (rawImg) => {
   if (!rawImg || typeof rawImg !== "string") return true;
   // If it's a data URI (such as the base64 'Tap to Upload Image' button saved during app testing)
@@ -21,6 +30,12 @@ export const isBadEventImage = (rawImg) => {
   }
   if (!rawImg.startsWith("http") && !rawImg.startsWith("/")) return true;
   const lower = rawImg.toLowerCase();
+
+  // Check known mobile default upload button assets uploaded to S3
+  if (KNOWN_TAP_TO_UPLOAD_S3_IMAGES.some((name) => lower.includes(name.toLowerCase()))) {
+    return true;
+  }
+
   return (
     lower.includes("tap to upload") ||
     lower.includes("placeholder") ||
@@ -151,7 +166,7 @@ export const getDateCondition = (dateVal, statusStr = "") => {
       type: "past",
       badgeClass: "badge-soft-neutral",
       dotClass: "status-dot",
-      icon: "bi-clock-history"
+      icon: "bi-check-circle"
     };
   }
   return {
@@ -171,7 +186,7 @@ export const getStatusInfo = (statusStr) => {
   if (["confirmed", "accepted", "accept", "activated", "active", "ongoingevent", "completed"].includes(s)) {
     return { badgeClass: "badge-soft-success", dotClass: "status-dot status-dot-success", icon: "bi-check-circle", text: "Accepted" };
   }
-  return { badgeClass: "badge-soft-warning", dotClass: "status-dot status-dot-warning", icon: "bi-clock-history", text: "Reservation Received" };
+  return { badgeClass: "badge-soft-warning", dotClass: "status-dot status-dot-warning", icon: "bi-clock", text: "Reservation Received" };
 };
 
 export const getEventImg = (rawImg, fallback) => {

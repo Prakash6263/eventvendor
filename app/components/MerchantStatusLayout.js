@@ -14,7 +14,7 @@ export default function MerchantStatusLayout({ children, wide = false }) {
   };
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} ${wide ? styles.shellWide : ""}`}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <img className={styles.logo} src="/images/logo.png" alt="Eventuna" />
@@ -27,7 +27,7 @@ export default function MerchantStatusLayout({ children, wide = false }) {
       <main className={`${styles.main} ${wide ? styles.mainWide : ""}`}>
         {children}
       </main>
-      <Footer />
+      {!wide && <Footer />}
     </div>
   );
 }

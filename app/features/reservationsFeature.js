@@ -3,7 +3,9 @@ import {
   getStatusInfo,
   getEventImg,
   getEntityId,
-  DEFAULT_FALLBACK_IMAGES
+  DEFAULT_FALLBACK_IMAGES,
+  EVENT_DEFAULT_SVG,
+  isBadEventImage
 } from "../utils/formatters";
 import {
   resolveItemEvent,
@@ -132,29 +134,37 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
     const detailContainer = document.querySelector(".col-lg-9 .content-card, .user-profile-wrapper .content-card");
     if (!detailContainer) return;
 
+    const statusInfo = getStatusInfo(item.status);
+
     detailContainer.innerHTML = `
-      <!-- Header with Back navigation -->
-      <div class="mb-3 d-flex align-items-center gap-2">
-        <a href="/reservation-list" class="btn btn-sm btn-light rounded-circle text-dark border me-1" style="width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center;">
-          <i class="bi bi-arrow-left fs-6"></i>
+      <!-- Header with Clean Professional Back Navigation -->
+      <div class="mb-4">
+        <a href="/reservation-list" class="text-decoration-none text-muted d-inline-flex align-items-center gap-2 mb-2 fw-semibold" style="font-size:14px; transition:color 0.15s ease;">
+          <i class="fa-solid fa-arrow-left"></i> Back to Reservations
         </a>
-        <h5 class="fw-bold m-0" style="font-size:18px;">Booking Detail</h5>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <h4 class="fw-bold m-0 text-dark" style="font-family:'Poppins', sans-serif;">Booking Detail</h4>
+          <span class="badge ${statusInfo.badgeClass} rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5" style="font-size:12px;">
+            <i class="fa-solid ${String(item.status).toLowerCase().includes('cancel') ? 'fa-circle-xmark' : (['confirmed', 'accepted', 'completed'].includes(String(item.status).toLowerCase()) ? 'fa-circle-check' : 'fa-clock')}"></i>
+            ${statusInfo.text}
+          </span>
+        </div>
       </div>
 
       <!-- Banner Image -->
-      <div class="mb-3 overflow-hidden rounded-4 border bg-light position-relative" style="height: 220px;">
-        <img src="${eventImg}" alt="${eventTitle}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${fallbackImg}';" />
+      <div class="mb-4 overflow-hidden rounded-4 border bg-light position-relative" style="height: 230px;">
+        <img src="${eventImg}" alt="${eventTitle}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${EVENT_DEFAULT_SVG}';" />
       </div>
 
       <!-- Event Title -->
-      <h3 class="fw-bold text-dark mb-3" style="font-size: 24px;">${eventTitle}</h3>
+      <h3 class="fw-bold text-dark mb-4" style="font-size: 22px; font-family:'Poppins', sans-serif;">${eventTitle}</h3>
 
       <!-- Core Info Tiles (Matches iOS Booking Detail layout) -->
       <div class="d-flex flex-column gap-3 mb-4">
         <!-- Date & Time -->
         <div class="modern-info-tile d-flex align-items-center gap-3 p-3 rounded-4 bg-light border-0">
           <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-3" style="width:48px; height:48px; background:#eef2ff; color:#5b6ef5;">
-            <i class="bi bi-calendar-event fs-5"></i>
+            <i class="fa-regular fa-calendar-days fs-5"></i>
           </div>
           <div>
             <div class="fw-bold text-dark" style="font-size:15px;">${resDateInfo.date}</div>
@@ -165,11 +175,11 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
         <!-- Adult Attendees -->
         <div class="modern-info-tile d-flex align-items-center gap-3 p-3 rounded-4 bg-light border-0">
           <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-3" style="width:48px; height:48px; background:#eef2ff; color:#5b6ef5;">
-            <i class="bi bi-person-fill fs-5"></i>
+            <i class="fa-solid fa-users fs-5"></i>
           </div>
           <div>
             <div class="fw-bold text-dark" style="font-size:15px;">Adult Attendees</div>
-            <small class="text-muted" style="font-size:13px;">${attendeesCount}</small>
+            <small class="text-muted" style="font-size:13px;">${attendeesCount} Guest(s)</small>
           </div>
         </div>
 
@@ -180,7 +190,7 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
             <small class="text-muted" style="font-size:13px;">${serviceName}</small>
           </div>
           <button type="button" id="toggleOrderItemsBtn" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-2" style="background:#5b6ef5; border:none;">
-            <span>Show</span> <i class="bi bi-card-checklist"></i>
+            <span>Show</span> <i class="fa-solid fa-list-check"></i>
           </button>
         </div>
 
@@ -217,7 +227,7 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
             </div>
           </div>
           <a href="/chat?eventId=${encodeURIComponent(chatEventId)}&userId=${encodeURIComponent(chatUserId)}" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-2" style="background:#5b6ef5; border:none; text-decoration:none;">
-            <span>Chat</span> <i class="bi bi-chat-dots-fill"></i>
+            <span>Chat</span> <i class="fa-solid fa-comments"></i>
           </a>
         </div>
       </div>
@@ -257,10 +267,10 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
         <div id="confirmAlertMsg" class="mb-3" style="display:none;"></div>
         <div class="d-flex gap-3 mt-3">
           <button id="confirmResBtn" class="btn btn-success fw-bold flex-grow-1 py-3 rounded-3" style="border:none; cursor:pointer;">
-            <i class="bi bi-check-circle me-2"></i>Confirm Reservation
+            <i class="fa-solid fa-circle-check me-2"></i>Confirm Reservation
           </button>
           <button id="declineResBtn" class="btn btn-outline-danger fw-bold flex-grow-1 py-3 rounded-3" style="cursor:pointer;">
-            <i class="bi bi-x-circle me-2"></i>Decline
+            <i class="fa-solid fa-circle-xmark me-2"></i>Decline
           </button>
         </div>
 

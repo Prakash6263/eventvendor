@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { FaBell } from "react-icons/fa6";
 import { authService } from "../services/authService";
 
 export default function Header() {
@@ -181,7 +182,6 @@ export default function Header() {
                   <li className="d-flex align-items-center gap-2">
                     <Link
                       href="/notifications"
-                      className="btn-hover"
                       title="Notifications"
                       style={{
                         position: "relative",
@@ -191,14 +191,28 @@ export default function Header() {
                         border: "1px solid #e2e8f0",
                         background: isActive("/notifications") ? "#3e56f0" : "#ffffff",
                         color: isActive("/notifications") ? "#ffffff" : "#475569",
-                        display: "grid",
-                        placeItems: "center",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                         textDecoration: "none",
-                        fontSize: "15px",
                         transition: "all 0.15s ease",
                       }}
+                      onMouseEnter={(e) => {
+                        if (!isActive("/notifications")) {
+                          e.currentTarget.style.background = "#f1f5f9";
+                          e.currentTarget.style.borderColor = "#cbd5e1";
+                          e.currentTarget.style.color = "#0f172a";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive("/notifications")) {
+                          e.currentTarget.style.background = "#ffffff";
+                          e.currentTarget.style.borderColor = "#e2e8f0";
+                          e.currentTarget.style.color = "#475569";
+                        }
+                      }}
                     >
-                      <i className="fa-solid fa-bell" />
+                      <FaBell size={16} />
                       {pendingCount > 0 && (
                         <span
                           style={{
@@ -213,8 +227,9 @@ export default function Header() {
                             color: "#ffffff",
                             fontSize: "10px",
                             fontWeight: "700",
-                            display: "grid",
-                            placeItems: "center",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                             boxShadow: "0 0 0 2px #ffffff",
                           }}
                         >

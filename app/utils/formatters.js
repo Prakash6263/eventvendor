@@ -89,33 +89,8 @@ export const formatEventDate = (dateStr, startTime, endTime) => {
 
 export const getDateCondition = (dateVal, statusStr = "") => {
   const s = String(statusStr || "").toLowerCase().trim();
-  if (["ongoingevent", "ongoing"].includes(s)) {
-    return {
-      label: "Ongoing",
-      type: "ongoing",
-      badgeClass: "badge-soft-success",
-      dotClass: "status-dot status-dot-success",
-      icon: "bi-broadcast"
-    };
-  }
-  if (s === "draft") {
-    return {
-      label: "Draft",
-      type: "draft",
-      badgeClass: "badge-soft-neutral",
-      dotClass: "status-dot",
-      icon: "bi-pencil"
-    };
-  }
-  if (["completed", "finished"].includes(s)) {
-    return {
-      label: "Completed",
-      type: "past",
-      badgeClass: "badge-soft-neutral",
-      dotClass: "status-dot",
-      icon: "bi-check2-all"
-    };
-  }
+
+  // 1. Explicit cancellation takes priority
   if (["cancelled", "canceled", "declined", "rejected"].includes(s)) {
     return {
       label: "Cancelled",
@@ -125,8 +100,41 @@ export const getDateCondition = (dateVal, statusStr = "") => {
       icon: "bi-x-circle"
     };
   }
+
+  // 2. Draft status
+  if (s === "draft") {
+    return {
+      label: "Draft",
+      type: "draft",
+      badgeClass: "badge-soft-neutral",
+      dotClass: "status-dot",
+      icon: "bi-pencil"
+    };
+  }
+
+  // 3. Explicitly completed
+  if (["completed", "finished"].includes(s)) {
+    return {
+      label: "Completed",
+      type: "past",
+      badgeClass: "badge-soft-neutral",
+      dotClass: "status-dot",
+      icon: "bi-check-circle"
+    };
+  }
+
+  // 4. Parse the event date to calculate real temporal status
   const dt = parseDateSafe(dateVal);
   if (!dt) {
+    if (["ongoingevent", "ongoing"].includes(s)) {
+      return {
+        label: "Active",
+        type: "upcoming",
+        badgeClass: "badge-soft-success",
+        dotClass: "status-dot status-dot-success",
+        icon: "bi-check-circle"
+      };
+    }
     return {
       label: statusStr || "Scheduled",
       type: "upcoming",
@@ -142,24 +150,7 @@ export const getDateCondition = (dateVal, statusStr = "") => {
   target.setHours(0, 0, 0, 0);
   const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) {
-    return {
-      label: "Today",
-      type: "upcoming",
-      badgeClass: "badge-soft-warning",
-      dotClass: "status-dot status-dot-warning",
-      icon: "bi-lightning-charge-fill"
-    };
-  }
-  if (diffDays === 1) {
-    return {
-      label: "Tomorrow",
-      type: "upcoming",
-      badgeClass: "badge-soft-primary",
-      dotClass: "status-dot status-dot-primary",
-      icon: "bi-clock"
-    };
-  }
+  // If the event date is before today, it has already passed
   if (diffDays < 0) {
     return {
       label: "Past Event",
@@ -169,6 +160,30 @@ export const getDateCondition = (dateVal, statusStr = "") => {
       icon: "bi-check-circle"
     };
   }
+
+  // If the event date is today: it is happening right now / today
+  if (diffDays === 0) {
+    return {
+      label: "Ongoing",
+      type: "ongoing",
+      badgeClass: "badge-soft-success",
+      dotClass: "status-dot status-dot-success",
+      icon: "bi-broadcast"
+    };
+  }
+
+  // If the event is tomorrow
+  if (diffDays === 1) {
+    return {
+      label: "Tomorrow",
+      type: "upcoming",
+      badgeClass: "badge-soft-primary",
+      dotClass: "status-dot status-dot-primary",
+      icon: "bi-clock"
+    };
+  }
+
+  // Future dates
   return {
     label: "Upcoming",
     type: "upcoming",

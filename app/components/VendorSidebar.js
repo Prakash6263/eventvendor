@@ -11,6 +11,22 @@ export default function VendorSidebar() {
   const router = useRouter();
   const [profile, setProfile] = useState(null);
   const [imageError, setImageError] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const handleCount = (e) => {
+      setPendingCount(e.detail?.pendingCount || 0);
+    };
+    if (typeof window !== "undefined") {
+      setPendingCount(window.__merchantPendingCount || 0);
+      window.addEventListener("merchant-pending-count", handleCount);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("merchant-pending-count", handleCount);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // 1. Initial seed from localStorage cache for instant render
@@ -291,7 +307,23 @@ export default function VendorSidebar() {
                     color: isActive ? "#ffffff" : "#64748b",
                   }}
                 />
-                <span>{item.label}</span>
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {item.href === "/notifications" && pendingCount > 0 && (
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      padding: "2px 7px",
+                      borderRadius: "999px",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      background: isActive ? "rgba(255, 255, 255, 0.25)" : "#fee2e2",
+                      color: isActive ? "#ffffff" : "#dc2626",
+                      lineHeight: "1",
+                    }}
+                  >
+                    {pendingCount}
+                  </span>
+                )}
               </Link>
             </li>
           );

@@ -11,6 +11,22 @@ export default function Header() {
   const [offcanvasOpen, setOffcanvasOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const handleCount = (e) => {
+      setPendingCount(e.detail?.pendingCount || 0);
+    };
+    if (typeof window !== "undefined") {
+      setPendingCount(window.__merchantPendingCount || 0);
+      window.addEventListener("merchant-pending-count", handleCount);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("merchant-pending-count", handleCount);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -172,6 +188,49 @@ export default function Header() {
               <ul className="align-self-stretch d-flex align-items-center m-0">
                 {isLoggedIn ? (
                   <li className="d-flex align-items-center gap-2">
+                    <Link
+                      href="/notifications"
+                      className="btn-hover"
+                      title="Notifications"
+                      style={{
+                        position: "relative",
+                        width: "38px",
+                        height: "38px",
+                        borderRadius: "10px",
+                        border: "1px solid #e2e8f0",
+                        background: isActive("/notifications") ? "#3e56f0" : "#ffffff",
+                        color: isActive("/notifications") ? "#ffffff" : "#475569",
+                        display: "grid",
+                        placeItems: "center",
+                        textDecoration: "none",
+                        fontSize: "15px",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      <i className="fa-solid fa-bell" />
+                      {pendingCount > 0 && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: "-4px",
+                            right: "-4px",
+                            minWidth: "18px",
+                            height: "18px",
+                            padding: "0 4px",
+                            borderRadius: "999px",
+                            background: "#ef4444",
+                            color: "#ffffff",
+                            fontSize: "10px",
+                            fontWeight: "700",
+                            display: "grid",
+                            placeItems: "center",
+                            boxShadow: "0 0 0 2px #ffffff",
+                          }}
+                        >
+                          {pendingCount}
+                        </span>
+                      )}
+                    </Link>
                     <Link href="/vendor-profile" className="create-btn btn-hover">
                       <i className="fa-solid fa-user me-1"></i>
                       <span>Profile</span>

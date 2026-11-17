@@ -2,22 +2,12 @@ import { formatEventDate } from "../utils/formatters";
 import { resolveItemEvent, resolveCustomer } from "../utils/reservationHelpers";
 
 export function initNotificationsFeature({ data = [], allEvents = [], pendingCount = 0 }) {
-  // 1. Update notification badge count in navigation and sidebar
-  document.querySelectorAll('a[href="/notifications"], a[href="/reservation-list"]').forEach((el) => {
-    const isNotif = el.getAttribute("href") === "/notifications";
-    let badge = el.querySelector(".nav-notif-count-badge");
-    if (isNotif && pendingCount > 0) {
-      if (!badge) {
-        badge = document.createElement("span");
-        badge.className = "nav-notif-count-badge badge rounded-pill ms-2";
-        badge.style.cssText = "font-size:10px; padding:2px 7px; background:#ef4444; color:#fff; font-weight:700;";
-        el.appendChild(badge);
-      }
-      badge.textContent = pendingCount;
-    } else if (badge && (!isNotif || pendingCount === 0)) {
-      badge.remove();
-    }
-  });
+  // 1. Clean up any legacy raw badge elements and broadcast count to React components
+  if (typeof window !== "undefined") {
+    window.__merchantPendingCount = pendingCount;
+    window.dispatchEvent(new CustomEvent("merchant-pending-count", { detail: { pendingCount } }));
+    document.querySelectorAll(".nav-notif-count-badge").forEach((el) => el.remove());
+  }
 
   // 2. If on /notifications, populate the live notification list
   if (typeof window !== "undefined" && window.location.pathname === "/notifications") {

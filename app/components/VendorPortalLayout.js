@@ -1,34 +1,38 @@
 "use client";
 
 import Header from "./Header";
-import Footer from "./Footer";
 import VendorSidebar from "./VendorSidebar";
 
 export default function VendorPortalLayout({ children }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#f8f9fc" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", background: "#f8f9fc" }}>
       <Header />
-      <main style={{ flex: 1, paddingTop: "96px", paddingBottom: "50px" }}>
-        <div className="container">
-          <div className="row" style={{ alignItems: "flex-start" }}>
-            <aside
-              className="col-lg-3 col-md-12 mb-4 mb-lg-0"
-              style={{
-                position: "sticky",
-                top: "96px",
-                zIndex: 100,
-                alignSelf: "flex-start",
-              }}
-            >
-              <VendorSidebar />
-            </aside>
-            <div className="col-lg-9 col-md-12">
-              {children}
-            </div>
-          </div>
-        </div>
-      </main>
-      <Footer />
+      <div style={{ display: "flex", flex: 1, overflow: "hidden", paddingTop: "96px" }}>
+        {/* Fixed Sidebar — does NOT scroll */}
+        <aside
+          style={{
+            width: "260px",
+            flexShrink: 0,
+            height: "100%",
+            overflowY: "auto",
+            borderRight: "1px solid #e8ecf4",
+            padding: "24px 16px",
+            background: "#fff",
+          }}
+        >
+          <VendorSidebar />
+        </aside>
+        {/* Main content — scrolls independently */}
+        <main
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "24px 32px 60px 32px",
+          }}
+        >
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

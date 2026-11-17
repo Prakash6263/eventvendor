@@ -131,15 +131,6 @@ export default function Header() {
                       Reservations
                     </Link>
                   </li>
-                  <li className="nav-item">
-                    <Link
-                      className={`nav-link ${isActive("/notifications") ? "active" : ""}`}
-                      href="/notifications"
-                      onClick={() => setOffcanvasOpen(false)}
-                    >
-                      Notifications
-                    </Link>
-                  </li>
                 </ul>
               </div>
               <div className="offcanvas-footer">

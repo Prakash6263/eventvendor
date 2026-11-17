@@ -582,6 +582,7 @@ export default function ServicesManager() {
   });
   const [locationPhoto, setLocationPhoto] = useState(null);
   const [locationPhotoDesc, setLocationPhotoDesc] = useState("");
+  const [locationPhotoPreview, setLocationPhotoPreview] = useState("");
 
   // Menu State
   const [categories, setCategories] = useState([]);
@@ -592,6 +593,7 @@ export default function ServicesManager() {
   const [loadingDishes, setLoadingDishes] = useState(false);
   const [newDish, setNewDish] = useState({ name: "", price: "", description: "", categoryId: "" });
   const [dishPhoto, setDishPhoto] = useState(null);
+  const [dishPhotoPreview, setDishPhotoPreview] = useState("");
 
   // Merchant Profile State
   const [merchantProfile, setMerchantProfile] = useState(null);
@@ -1115,6 +1117,27 @@ export default function ServicesManager() {
     }
   };
 
+  // Branch location photo handler
+  const handleLocationPhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLocationPhoto(file);
+      setLocationPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Dish photo handler
+  const handleDishPhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setDishPhoto(file);
+      setDishPhotoPreview(URL.createObjectURL(file));
+    } else {
+      setDishPhoto(null);
+      setDishPhotoPreview("");
+    }
+  };
+
   // Save / Update Location
   const handleAddLocation = async () => {
     if (!locationForm.addressName.trim() || !locationForm.address.trim()) {
@@ -1175,6 +1198,7 @@ export default function ServicesManager() {
           photoFd.append("media", locationPhoto);
           await authService.addMerchantLocationMedia(photoFd).catch(() => null);
           setLocationPhoto(null);
+          setLocationPhotoPreview("");
           setLocationPhotoDesc("");
         }
 
@@ -1192,6 +1216,9 @@ export default function ServicesManager() {
           acceptPreorder: true,
           openTwoShifts: false,
         });
+        setLocationPhoto(null);
+        setLocationPhotoPreview("");
+        setLocationPhotoDesc("");
 
         // Refresh locations
         const locRes = await authService.getMerchantLocations().catch(() => null);
@@ -1231,6 +1258,21 @@ export default function ServicesManager() {
     if (Array.isArray(loc.weeklySchedule) && loc.weeklySchedule.length > 0) {
       setWeeklySchedule(loc.weeklySchedule);
     }
+    // Prefill / pre-render existing photo from locationPhotoVideoList or locationPhoto or image
+    const mediaItem = Array.isArray(loc.locationPhotoVideoList) && loc.locationPhotoVideoList.length > 0
+      ? loc.locationPhotoVideoList[0]
+      : null;
+    const existingPhotoUrl =
+      mediaItem?.url ||
+      mediaItem?.file ||
+      loc.locationPhoto ||
+      loc.photo ||
+      loc.image ||
+      "";
+    setLocationPhoto(null);
+    setLocationPhotoPreview(existingPhotoUrl);
+    setLocationPhotoDesc(mediaItem?.description || loc.photoDescription || "");
+
     const el = document.getElementById("branch-config-form");
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
@@ -1249,6 +1291,10 @@ export default function ServicesManager() {
       acceptPreorder: true,
       openTwoShifts: false,
     });
+    setLocationPhoto(null);
+    setLocationPhotoPreview("");
+    setLocationPhotoDesc("");
+    setWeeklySchedule(createDefaultSchedule());
   };
 
   // Add Category
@@ -1311,6 +1357,7 @@ export default function ServicesManager() {
         Swal.fire("Dish Added", `Dish "${newDish.name}" added to menu.`, "success");
         setNewDish({ name: "", price: "", description: "", categoryId: catId });
         setDishPhoto(null);
+        setDishPhotoPreview("");
         // Refresh dishes for this category
         const dishRes = await authService.getProductsByCategory({ categoryId: catId }).catch(() => null);
         const dishList = Array.isArray(dishRes?.data)
@@ -1993,6 +2040,8 @@ export default function ServicesManager() {
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "14px" }}>
                       {locations.map((loc, i) => {
                         const isCurrent = (loc._id || loc.id) === editingLocId;
+                        const mediaItem = Array.isArray(loc.locationPhotoVideoList) && loc.locationPhotoVideoList.length > 0 ? loc.locationPhotoVideoList[0] : null;
+                        const branchPhotoUrl = mediaItem?.url || mediaItem?.file || loc.locationPhoto || loc.photo || loc.image || "";
                         return (
                           <div
                             key={i}
@@ -2008,13 +2057,35 @@ export default function ServicesManager() {
                             }}
                           >
                             <div>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
-                                <strong style={{ fontSize: "15px", color: "#0f172a" }}>{loc.addressName || `Branch #${i + 1}`}</strong>
-                                <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 8px", background: "#ecfdf5", color: "#059669", borderRadius: "999px" }}>
-                                  Active Branch
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px", gap: "10px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: 0 }}>
+                                  {branchPhotoUrl ? (
+                                    <div style={{ width: "46px", height: "46px", borderRadius: "8px", overflow: "hidden", border: "1px solid #cbd5e1", flexShrink: 0, background: "#f1f5f9" }}>
+                                      <img
+                                        src={branchPhotoUrl}
+                                        alt={loc.addressName}
+                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                        onError={(e) => { e.target.style.display = "none"; }}
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div style={{ width: "46px", height: "46px", borderRadius: "8px", background: "#f1f5f9", display: "grid", placeItems: "center", color: "#6366f1", flexShrink: 0, fontSize: "16px" }}>
+                                      🏢
+                                    </div>
+                                  )}
+                                  <div style={{ minWidth: 0, flex: 1 }}>
+                                    <strong style={{ fontSize: "15px", color: "#0f172a", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                      {loc.addressName || `Branch #${i + 1}`}
+                                    </strong>
+                                    <p style={{ fontSize: "12px", color: "#64748b", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                      {loc.address}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 8px", background: "#ecfdf5", color: "#059669", borderRadius: "999px", flexShrink: 0 }}>
+                                  Active
                                 </span>
                               </div>
-                              <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "10px", lineHeight: "1.4" }}>{loc.address}</p>
 
                               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px" }}>
                                 <span style={{ fontSize: "12px", padding: "3px 8px", background: "#f1f5f9", borderRadius: "6px", color: "#334155" }}>
@@ -2300,9 +2371,54 @@ export default function ServicesManager() {
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => setLocationPhoto(e.target.files?.[0] || null)}
+                          onChange={handleLocationPhotoChange}
                           style={{ padding: "8px", border: "1px solid #cbd5e1", borderRadius: "8px" }}
                         />
+                        {locationPhotoPreview && (
+                          <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "14px", padding: "10px 14px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                            <div style={{
+                              width: "100px",
+                              height: "70px",
+                              borderRadius: "8px",
+                              overflow: "hidden",
+                              border: "2px solid #6366f1",
+                              background: "#e0e7ff",
+                              flexShrink: 0,
+                            }}>
+                              <img
+                                src={locationPhotoPreview}
+                                alt="Branch Preview"
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                onError={(e) => {
+                                  e.target.src = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80";
+                                }}
+                              />
+                            </div>
+                            <div style={{ fontSize: "12px", color: "#475569", flex: 1 }}>
+                              <span style={{ fontWeight: "700", display: "block", color: "#1e293b", marginBottom: "2px" }}>
+                                {editingLocId && !locationPhoto ? "Current Saved Branch Photo" : "Selected Photo Preview"}
+                              </span>
+                              <span style={{ color: "#64748b", display: "block", fontSize: "11px", wordBreak: "break-all" }}>
+                                {locationPhoto ? locationPhoto.name : (locationPhotoDesc || "Active branch photo")}
+                              </span>
+                              {locationPhoto && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setLocationPhoto(null);
+                                    // revert to existing photo if editing
+                                    const loc = locations.find((l) => (l._id || l.id) === editingLocId);
+                                    const mediaItem = loc?.locationPhotoVideoList?.[0];
+                                    setLocationPhotoPreview(mediaItem?.url || mediaItem?.file || loc?.image || "");
+                                  }}
+                                  style={{ marginTop: "4px", color: "#ef4444", fontSize: "11px", fontWeight: "600", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                                >
+                                  ✕ Revert new photo
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className={styles.formGroup}>
                         <label>Photo Description / Caption</label>
@@ -2523,9 +2639,22 @@ export default function ServicesManager() {
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => setDishPhoto(e.target.files?.[0] || null)}
+                          onChange={handleDishPhotoChange}
                           style={{ padding: "6px", border: "1px solid #cbd5e1", borderRadius: "8px" }}
                         />
+                        {dishPhotoPreview && (
+                          <div style={{ marginTop: "8px", display: "flex", alignItems: "center", gap: "10px", padding: "6px 10px", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                            <img
+                              src={dishPhotoPreview}
+                              alt="Dish Preview"
+                              style={{ width: "48px", height: "48px", borderRadius: "6px", objectFit: "cover", border: "1.5px solid #6366f1" }}
+                            />
+                            <div style={{ fontSize: "11px", color: "#475569" }}>
+                              <span style={{ fontWeight: "600", display: "block", color: "#1e293b" }}>Selected Photo</span>
+                              <span>{dishPhoto?.name}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                         <label>Description</label>

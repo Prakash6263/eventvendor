@@ -1316,7 +1316,14 @@ export default function MerchantProfileWizard() {
 
       const newStatus = normalizeApplicationStatus(profileResponse?.data?.applicationStatus || "pending");
       if (newStatus === "approved") {
-        router.replace("/congratulations");
+        const user = authService.getUser() || profileResponse?.data || {};
+        const merchantId = user?._id || user?.id || user?.email || "default";
+        const hasSeenCongrats = typeof window !== "undefined" && localStorage.getItem(`eventuna_congrats_seen_${merchantId}`);
+        if (!hasSeenCongrats) {
+          router.replace("/congratulations");
+        } else {
+          router.replace("/");
+        }
       } else {
         router.replace("/application-pending");
       }

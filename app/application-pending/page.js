@@ -26,6 +26,15 @@ export default function ApplicationPendingPage() {
 
       const destination = getApplicationRoute(response.data);
       if (destination && destination !== "/application-pending") {
+        if (destination === "/") {
+          const user = authService.getUser() || response.data || {};
+          const merchantId = user?._id || user?.id || user?.email || "default";
+          const hasSeenCongrats = typeof window !== "undefined" && localStorage.getItem(`eventuna_congrats_seen_${merchantId}`);
+          if (!hasSeenCongrats) {
+            router.replace("/congratulations");
+            return;
+          }
+        }
         router.replace(destination);
         return;
       }

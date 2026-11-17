@@ -1,11 +1,27 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { authService } from "../services/authService";
 import styles from "./congratulations.module.css";
 
 export default function CongratulationsPage() {
   const router = useRouter();
+
+  // Mark as seen so this screen only ever appears the first time after approval
+  useEffect(() => {
+    const user = authService.getUser() || {};
+    const merchantId = user?._id || user?.id || user?.email || "default";
+    localStorage.setItem(`eventuna_congrats_seen_${merchantId}`, "true");
+  }, []);
+
+  const handleDismiss = (destination) => {
+    const user = authService.getUser() || {};
+    const merchantId = user?._id || user?.id || user?.email || "default";
+    localStorage.setItem(`eventuna_congrats_seen_${merchantId}`, "true");
+    router.push(destination);
+  };
 
   return (
     <div className={styles.pageWrapper}>
@@ -15,7 +31,7 @@ export default function CongratulationsPage() {
           <button
             type="button"
             className={styles.backBtn}
-            onClick={() => router.push("/")}
+            onClick={() => handleDismiss("/")}
             aria-label="Back"
           >
             <i className="bi bi-arrow-left"></i>
@@ -67,7 +83,7 @@ export default function CongratulationsPage() {
           <button
             type="button"
             className={styles.viewProfileBtn}
-            onClick={() => router.push("/vendor-profile")}
+            onClick={() => handleDismiss("/vendor-profile")}
           >
             VIEW PROFILE
           </button>

@@ -42,9 +42,16 @@ export default function LoginPage() {
           destination = getApplicationRoute(res) || getApplicationRoute(res?.data) || "/";
         }
 
-        // If merchant application is approved, route to Congratulations screen (matches iOS flow)
+        // Route to Congratulations screen ONLY the first time after approval
         if (destination === "/") {
-          destination = "/congratulations";
+          const user = authService.getUser() || res?.data || res || {};
+          const merchantId = user?._id || user?.id || user?.email || "default";
+          const hasSeenCongrats = typeof window !== "undefined" && localStorage.getItem(`eventuna_congrats_seen_${merchantId}`);
+          if (!hasSeenCongrats) {
+            destination = "/congratulations";
+          } else {
+            destination = "/";
+          }
         }
 
         setSuccessMsg(res.message || "Login successful!");

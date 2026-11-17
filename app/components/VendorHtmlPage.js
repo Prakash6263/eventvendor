@@ -119,6 +119,29 @@ export default function VendorHtmlPage({ markup }) {
           else if (path === "/vendor-event-details") heroTitle.textContent = "Event Detail";
         }
 
+        if (path === "/vendor-event-details") {
+          const detailContainer = document.querySelector(".col-lg-9 .content-card, .user-profile-wrapper .content-card");
+          if (detailContainer && !detailContainer.querySelector(".placeholder-glow")) {
+            detailContainer.innerHTML = `
+              <div class="p-3" style="min-height: 480px;">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                  <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                  <span class="text-muted fw-semibold small">Loading event details...</span>
+                </div>
+                <div class="placeholder-glow">
+                  <div class="placeholder col-12 mb-4 rounded-4" style="height: 230px; background:#e2e8f0;"></div>
+                  <div class="placeholder col-6 mb-3 rounded-2" style="height: 28px; background:#e2e8f0;"></div>
+                  <div class="placeholder col-4 mb-4 rounded-2" style="height: 18px; background:#e2e8f0;"></div>
+                  <div class="d-flex flex-column gap-3">
+                    <div class="placeholder col-12 rounded-3" style="height: 56px; background:#f1f5f9;"></div>
+                    <div class="placeholder col-12 rounded-3" style="height: 56px; background:#f1f5f9;"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+        }
+
         if (!["/", "/all-events", "/vendor-event-details"].includes(path)) return;
 
         const res = await authService.getMerchantAllEvents().catch(() => null);
@@ -136,6 +159,29 @@ export default function VendorHtmlPage({ markup }) {
     async function loadReservationsAndNotifications() {
       try {
         const path = window.location.pathname;
+
+        if (path === "/vendor-reservation-details") {
+          const detailContainer = document.querySelector(".col-lg-9 .content-card, .user-profile-wrapper .content-card");
+          if (detailContainer && !detailContainer.querySelector(".placeholder-glow")) {
+            detailContainer.innerHTML = `
+              <div class="p-3" style="min-height: 480px;">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                  <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                  <span class="text-muted fw-semibold small">Loading booking details...</span>
+                </div>
+                <div class="placeholder-glow">
+                  <div class="placeholder col-12 mb-4 rounded-4" style="height: 230px; background:#e2e8f0;"></div>
+                  <div class="placeholder col-6 mb-3 rounded-2" style="height: 28px; background:#e2e8f0;"></div>
+                  <div class="placeholder col-4 mb-4 rounded-2" style="height: 18px; background:#e2e8f0;"></div>
+                  <div class="d-flex flex-column gap-3">
+                    <div class="placeholder col-12 rounded-3" style="height: 56px; background:#f1f5f9;"></div>
+                    <div class="placeholder col-12 rounded-3" style="height: 56px; background:#f1f5f9;"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+        }
 
         const [bookingRequestsRes, reservationsRes, allEventsRes] = await Promise.all([
           authService.getMerchantBookingRequests().catch(() => null),

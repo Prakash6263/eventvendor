@@ -25,29 +25,32 @@ function renderEventListHtml(eventsList) {
       let statusBadgeHtml = "";
       if (cond.type === "ongoing") {
         statusBadgeHtml = `
-          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold" style="font-size:11.5px;">
-            <span style="width:7px; height:7px; border-radius:50%; background:#10b981; display:inline-block; box-shadow:0 0 0 2px rgba(16,185,129,0.3);"></span>
-            Ongoing
+          <span class="badge ${cond.badgeClass} rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold" style="font-size:11.5px;">
+            <span class="status-dot status-dot-success"></span>
+            <span>Ongoing</span>
           </span>`;
       } else if (cond.type === "upcoming") {
         statusBadgeHtml = `
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold" style="font-size:11.5px;">
-            <i class="fa-regular fa-calendar-check text-primary"></i> ${cond.label}
+          <span class="badge ${cond.badgeClass} rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold" style="font-size:11.5px;">
+            <i class="fa-regular fa-calendar-check" style="font-size:11px;"></i>
+            <span>${cond.label}</span>
           </span>`;
       } else if (cond.type === "past") {
         statusBadgeHtml = `
-          <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-medium" style="font-size:11.5px;">
-            <i class="fa-solid fa-clock-rotate-left"></i> Completed
+          <span class="badge ${cond.badgeClass} rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold" style="font-size:11.5px;">
+            <i class="fa-solid fa-circle-check" style="color:#64748b; font-size:11px;"></i>
+            <span>${cond.label || "Completed"}</span>
           </span>`;
       } else if (cond.type === "cancelled") {
         statusBadgeHtml = `
-          <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold" style="font-size:11.5px;">
-            <i class="fa-regular fa-circle-xmark"></i> Cancelled
+          <span class="badge ${cond.badgeClass} rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold" style="font-size:11.5px;">
+            <i class="fa-regular fa-circle-xmark" style="font-size:11px;"></i>
+            <span>Cancelled</span>
           </span>`;
       } else {
         statusBadgeHtml = `
-          <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5" style="font-size:11.5px;">
-            ${cond.label}
+          <span class="badge ${cond.badgeClass || 'badge-soft-neutral'} rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold" style="font-size:11.5px;">
+            <span>${cond.label}</span>
           </span>`;
       }
 
@@ -62,7 +65,7 @@ function renderEventListHtml(eventsList) {
                 <div class="d-flex align-items-center justify-content-between mb-1 gap-2">
                   <h6 class="fw-bold mb-0 text-dark text-truncate" style="font-size:15px; letter-spacing:-0.2px; font-family:'Poppins', sans-serif;">${event.eventTitle || 'Untitled Event'}</h6>
                   ${shortDate ? `
-                    <span class="badge ${cond.type === 'upcoming' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-light text-secondary border'} flex-shrink-0 px-2.5 py-1 rounded-pill" style="font-size:11.5px;">
+                    <span class="badge ${cond.type === 'upcoming' ? 'badge-soft-primary' : 'badge-soft-neutral'} flex-shrink-0 px-2.5 py-1 rounded-pill fw-semibold" style="font-size:11.5px;">
                       <i class="fa-regular fa-calendar-days me-1 ${cond.type === 'upcoming' ? 'text-primary' : 'text-muted'}"></i>${shortDate}
                     </span>` : ""}
                 </div>
@@ -372,34 +375,33 @@ export function initEventsFeature(eventsData = [], path) {
       })
       .filter(Boolean);
     const { date: formattedDate, time: formattedTime } = formatEventDate(event.eventDate, event.eventStartTime, event.eventEndTime);
-
-    const statusBg = event.status === "draft" ? "#6c757d" : event.status === "OngoingEvent" ? "#27ae60" : "#5b6ef5";
-    const statusLabel = event.status === "OngoingEvent" ? "Ongoing" : event.status === "draft" ? "Draft" : event.status || "Scheduled";
+    const cond = getDateCondition(event.eventDate, event.status);
 
     const detailContainer = document.querySelector(".col-lg-9 .content-card, .user-profile-wrapper .content-card");
     if (!detailContainer) return;
 
     detailContainer.innerHTML = `
-      <div class="mb-3">
-        <a href="/all-events" class="text-decoration-none text-muted d-inline-flex align-items-center gap-2 mb-3 fw-semibold" style="font-size:14px;">
+      <!-- Header with Clean Professional Back Navigation & Status Badge -->
+      <div class="mb-4">
+        <a href="/all-events" class="text-decoration-none text-muted d-inline-flex align-items-center gap-2 mb-2 fw-semibold" style="font-size:14px; transition:color 0.15s ease;">
           <i class="fa-solid fa-arrow-left"></i> Back to Events
         </a>
-        <h5 class="fw-bold mb-0" style="font-family:'Poppins', sans-serif;">Event Detail</h5>
-      </div>
-
-      <!-- Event Image Banner -->
-      <div class="mb-4" style="height:230px; overflow:hidden; border-radius:16px; background:#eef0ff; position:relative;">
-        <img src="${eventImg}" style="width:100%;height:100%;object-fit:cover;" onError="this.onerror=null;this.src='${EVENT_DEFAULT_SVG}';" />
-        <div style="position:absolute;inset:0;background:linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.45));border-radius:16px;"></div>
-        <div style="position:absolute;top:12px;right:12px;">
-          <span class="badge px-3 py-2 fw-semibold" style="font-size:12px;background:${statusBg};color:#fff;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
-            ${statusLabel}
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <h4 class="fw-bold m-0 text-dark" style="font-family:'Poppins', sans-serif;">Event Detail</h4>
+          <span class="badge ${cond.badgeClass} rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5" style="font-size:12px;">
+            <i class="fa-solid ${cond.type === 'cancelled' ? 'fa-circle-xmark' : (cond.type === 'past' ? 'fa-circle-check' : (cond.type === 'ongoing' ? 'fa-circle-dot' : 'fa-calendar-check'))}"></i>
+            ${cond.label}
           </span>
         </div>
       </div>
 
+      <!-- Event Image Banner -->
+      <div class="mb-4 overflow-hidden rounded-4 border bg-light position-relative" style="height: 230px;">
+        <img src="${eventImg}" alt="${event.eventTitle || 'Event'}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${EVENT_DEFAULT_SVG}';" />
+      </div>
+
       <!-- Title -->
-      <h4 class="fw-bold text-dark mb-4" style="font-family:'Poppins', sans-serif;">${event.eventTitle || "Event"}</h4>
+      <h3 class="fw-bold text-dark mb-4" style="font-size:22px; font-family:'Poppins', sans-serif;">${event.eventTitle || "Event"}</h3>
 
       <!-- Info rows -->
       <div class="d-flex flex-column gap-3 mb-4">

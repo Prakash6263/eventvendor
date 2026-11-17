@@ -17,7 +17,6 @@
 }
 
 .wizardCard {
-  min-height: 720px;
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
   background: #ffffff;
@@ -26,6 +25,8 @@
   box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(15, 23, 42, 0.03);
   position: relative;
   overflow: hidden;
+  /* Fixed height so sidebar stays put, content scrolls */
+  height: calc(100vh - 120px);
 }
 
 /* ==========================================================================
@@ -43,6 +44,8 @@
     radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.18), transparent 35%),
     linear-gradient(180deg, #090e1f 0%, #0f1938 55%, #131f47 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.07);
+  /* Sidebar stays fixed, no scroll */
+  overflow: hidden;
 }
 
 .sidebarSticky {
@@ -255,6 +258,8 @@
   flex-direction: column;
   padding: 40px 48px 36px;
   background: #ffffff;
+  /* Only the right side scrolls */
+  overflow-y: auto;
 }
 
 .mobileProgress {

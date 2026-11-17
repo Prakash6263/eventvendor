@@ -15,7 +15,16 @@ const normalizeList = (res, keys = []) => {
   return [];
 };
 
-const DEFAULT_DISH_FALLBACK = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80";
+const DEFAULT_DISH_FALLBACK = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
+  <rect width="300" height="200" fill="#f8fafc"/>
+  <rect x="0.5" y="0.5" width="299" height="199" fill="none" stroke="#e2e8f0"/>
+  <g fill="#94a3b8" transform="translate(136, 75) scale(2.2)">
+    <path d="M8 2a.5.5 0 0 1 .5.5V4h3.5A2.5 2.5 0 0 1 14.5 6.5v1A2.5 2.5 0 0 1 12 10H4a2.5 2.5 0 0 1-2.5-2.5v-1A2.5 2.5 0 0 1 4 4h3.5V2.5A.5.5 0 0 1 8 2zM3 13.5A1.5 1.5 0 0 1 4.5 12h7a1.5 1.5 0 0 1 1.5 1.5V14H3v-.5z"/>
+  </g>
+  <text x="150" y="142" text-anchor="middle" fill="#94a3b8" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600">No Photo Available</text>
+</svg>
+`);
 
 export default function MenuManager() {
   const [categories, setCategories] = useState([]);
@@ -369,7 +378,7 @@ export default function MenuManager() {
                     </div>
                     <div className={styles.productBody}>
                       <h4 className={styles.productName}>{prod.name || prod.productName}</h4>
-                      <p className={styles.productDesc}>{prod.description || "Freshly prepared dining specialty."}</p>
+                      <p className={styles.productDesc}>{prod.description || ""}</p>
                       <div className={styles.productFooter}>
                         <span className={styles.dishBadge}>
                           <i className="fa-solid fa-circle-check me-1" /> Available

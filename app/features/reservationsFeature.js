@@ -3,7 +3,6 @@ import {
   getStatusInfo,
   getEventImg,
   getEntityId,
-  DEFAULT_FALLBACK_IMAGES,
   EVENT_DEFAULT_SVG,
   isBadEventImage
 } from "../utils/formatters";
@@ -88,14 +87,44 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
     }
   }
 
-  if (data.length === 0) return;
-
   // ── RESERVATION & ORDER DETAILS PAGE (Matches iOS "Booking Detail" Screen) ──
   if (path === "/vendor-reservation-details") {
     const params = new URLSearchParams(window.location.search);
     const resId = params.get("id");
-    const item = (resId ? data.find((d) => String(d._id || d.id) === String(resId)) : null) || data[0];
-    if (!item) return;
+    const detailContainer = document.querySelector(".col-lg-9 .content-card, .user-profile-wrapper .content-card");
+
+    if (!resId) {
+      if (detailContainer) {
+        detailContainer.innerHTML = `
+          <div class="text-center py-5">
+            <i class="fa-solid fa-calendar-xmark text-muted mb-3" style="font-size: 42px;"></i>
+            <h5 class="fw-bold text-dark mb-1">No Booking Selected</h5>
+            <p class="text-muted small mb-4">Please select a booking from the reservations list to view details.</p>
+            <a href="/reservation-list" class="btn btn-primary rounded-pill px-4 fw-semibold btn-sm">
+              <i class="fa-solid fa-arrow-left me-1"></i> View Reservations
+            </a>
+          </div>
+        `;
+      }
+      return;
+    }
+
+    const item = data.find((d) => String(d._id || d.id) === String(resId));
+    if (!item) {
+      if (detailContainer) {
+        detailContainer.innerHTML = `
+          <div class="text-center py-5">
+            <i class="fa-solid fa-calendar-xmark text-muted mb-3" style="font-size: 42px;"></i>
+            <h5 class="fw-bold text-dark mb-1">Booking Request Not Found</h5>
+            <p class="text-muted small mb-4">We could not find the requested booking request or reservation. It may have been removed.</p>
+            <a href="/reservation-list" class="btn btn-primary rounded-pill px-4 fw-semibold btn-sm">
+              <i class="fa-solid fa-arrow-left me-1"></i> Back to Reservations
+            </a>
+          </div>
+        `;
+      }
+      return;
+    }
 
     const event = resolveItemEvent(item, allEvents);
     const location = resolveItemLocation(item, event);
@@ -105,15 +134,14 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
     const chatEventId = getEntityId(item.eventId) || getEntityId(event._id) || getEntityId(event);
     const chatUserId =
       getEntityId(organizer._id) || getEntityId(organizer.id) || getEntityId(item.userId) || getEntityId(event.userId);
-    const fallbackImg = DEFAULT_FALLBACK_IMAGES[0];
-    const eventImg = getEventImg(event.image || item.image, fallbackImg);
+    const eventImg = getEventImg(event.image || item.image);
     const organizerPic =
       organizer.profilePic && organizer.profilePic.startsWith("http") && !organizer.profilePic.includes("depositphotos")
         ? organizer.profilePic
         : `https://ui-avatars.com/api/?name=${encodeURIComponent(
             organizer.fullName || organizer.name || "Customer"
           )}&background=5b6ef5&color=fff&size=64`;
-    const addressStr = location.address || location.addressName || location.name || event.address || item.address || "Kanadia, Indore, Madhya Pradesh, India";
+    const addressStr = location.address || location.addressName || location.name || event.address || item.address || "Location not specified";
     const resDateInfo = formatEventDate(event.eventDate || item.date || item.createdAt, event.eventStartTime, event.eventEndTime);
     const normalizedStatus = String(item.status || "").toLowerCase().trim();
 
@@ -124,15 +152,12 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
     );
     const qrCodeSrc = item.eventAttendanceQr || event.eventAttendanceQr || item.attendanceQrToken || "";
     const eventTitle = event.eventTitle || item.eventTitle || item.title || "Booking Detail";
-    const serviceName = item.additionalServiceId?.servicesName || item.serviceName || "Catering";
-    const attendeesCount = item.adultCount || (Array.isArray(event.invitedUsers) ? event.invitedUsers.length : 2) || 2;
-    const specialNotes = event.description || item.description || item.instruction || item.comment || "Sds dsd";
+    const serviceName = item.additionalServiceId?.servicesName || item.serviceName || item.serviceTitle || "Service";
+    const attendeesCount = item.adultCount || (Array.isArray(event.invitedUsers) ? event.invitedUsers.length : 0);
+    const specialNotes = event.description || item.description || item.instruction || item.comment || "No special instructions provided.";
 
     const isPending = ["pending", "requested", "reservation received", "new"].includes(normalizedStatus);
     const isCancelled = ["cancelled", "rejected", "decline", "declined"].includes(normalizedStatus);
-
-    const detailContainer = document.querySelector(".col-lg-9 .content-card, .user-profile-wrapper .content-card");
-    if (!detailContainer) return;
 
     const statusInfo = getStatusInfo(item.status);
 
@@ -200,7 +225,7 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
           ${products.length > 0 ? products.map(prod => `
             <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded-3 bg-light">
               <div class="d-flex align-items-center gap-2">
-                <img src="${prod.photoUrl}" alt="${prod.name}" width="40" height="40" class="rounded-2" style="object-fit:cover;" onError="this.onerror=null;this.src='${fallbackImg}';" />
+                <img src="${prod.photoUrl || EVENT_DEFAULT_SVG}" alt="${prod.name}" width="40" height="40" class="rounded-2" style="object-fit:cover;" onError="this.onerror=null;this.src='${EVENT_DEFAULT_SVG}';" />
                 <div>
                   <div class="fw-bold text-dark" style="font-size:13.5px;">${prod.name}</div>
                   <small class="text-muted">Qty: ${prod.quantity}</small>

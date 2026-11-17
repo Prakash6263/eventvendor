@@ -229,71 +229,17 @@ const getSubTypesForCategory = (catName = "") => {
   return DEFAULT_SUB_TYPES;
 };
 
-// Rich default attributes for all 9 platform categories (Prefills Cuisine/Specialty, Slogan, Menu/URL, Banner & Description)
+// Category default schema (no hardcoded fake text or external photos)
 const CATEGORY_DEFAULTS = {
-  catering: {
-    cuisineName: "Buffet, Live Cooking & Multi-Cuisine Catering",
-    serviceSlogan: "Exquisite Catering & Culinary Excellence for Every Special Event",
-    menuUrl: "https://eventuna.com/menu/catering",
-    bannerImage: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=1200&q=80",
-    description: "Full-service wedding and corporate catering packages, live cooking counters, and customized multi-course banquets.",
-  },
-  restaurant: {
-    cuisineName: "Multi-Cuisine, Continental & Signature Dining",
-    serviceSlogan: "Authentic Flavors, Memorable Dining & Warm Hospitality",
-    menuUrl: "https://eventuna.com/menu/dining",
-    bannerImage: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
-    description: "Premium dining experience with hand-crafted recipes, fresh ingredients, and welcoming ambiance.",
-  },
-  facility: {
-    cuisineName: "Banquet Hall, Party Lawn & Luxury Event Spaces",
-    serviceSlogan: "The Perfect Venue for Unforgettable Celebrations & Gatherings",
-    menuUrl: "https://eventuna.com/venue/brochure",
-    bannerImage: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80",
-    description: "Spacious luxury banquet halls and open-air lawns equipped with state-of-the-art facilities for weddings and corporate galas.",
-  },
-  decor: {
-    cuisineName: "Theme Decoration, Floral Styling & Stage Backdrops",
-    serviceSlogan: "Transforming Spaces into Breathtaking Experiences",
-    menuUrl: "https://eventuna.com/decor/portfolio",
-    bannerImage: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=1200&q=80",
-    description: "Bespoke stage backdrops, floral entrance arches, fairy light canopies, and complete event theme architecture.",
-  },
-  photo: {
-    cuisineName: "Wedding Photography, Cinematic Teasers & Aerial Drones",
-    serviceSlogan: "Capturing Every Cherished Moment with Art & Precision",
-    menuUrl: "https://eventuna.com/photo/gallery",
-    bannerImage: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=80",
-    description: "High-definition wedding photo shoots, 4K cinematic highlights, instant photo-booths, and pre-event portraiture.",
-  },
-  music: {
-    cuisineName: "Live Acoustic Band, DJ Sets & Stage Audio Engineering",
-    serviceSlogan: "Electrifying Rhythms & Unmatched Live Entertainment",
-    menuUrl: "https://eventuna.com/music/tracks",
-    bannerImage: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80",
-    description: "Professional DJs, live acoustic music ensembles, folk troupes, and concert-grade PA sound system engineering.",
-  },
-  furniture: {
-    cuisineName: "VIP Lounges, Banquet Chairs, Tents & High Cocktail Tables",
-    serviceSlogan: "Premium Event Furniture, Tents & Seating Comfort",
-    menuUrl: "https://eventuna.com/rentals/catalog",
-    bannerImage: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
-    description: "Complete event rental inventory including round dining tables, banquet chair covers, VIP sofas, and canopy marquees.",
-  },
-  servant: {
-    cuisineName: "Uniformed Waiters, Kitchen Helpers, Valet & Cleaning Crews",
-    serviceSlogan: "Professional Hospitality & Flawless Event Service",
-    menuUrl: "https://eventuna.com/staffing/rates",
-    bannerImage: "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?auto=format&fit=crop&w=1200&q=80",
-    description: "Trained hospitality professionals, attentive table servers, valet parking drivers, and post-event cleanup specialists.",
-  },
-  entertain: {
-    cuisineName: "Stage Performers, Magicians, Event Clowns & Hosts",
-    serviceSlogan: "Joyful Entertainment & Magic for All Ages",
-    menuUrl: "https://eventuna.com/shows/schedule",
-    bannerImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
-    description: "Engaging magicians, interactive clown acts, party animators, and celebrity event hosts to entertain your guests.",
-  },
+  catering: { cuisineName: "", serviceSlogan: "", menuUrl: "", bannerImage: "", description: "" },
+  restaurant: { cuisineName: "", serviceSlogan: "", menuUrl: "", bannerImage: "", description: "" },
+  facility: { cuisineName: "", serviceSlogan: "", menuUrl: "", bannerImage: "", description: "" },
+  decor: { cuisineName: "", serviceSlogan: "", menuUrl: "", bannerImage: "", description: "" },
+  photo: { cuisineName: "", serviceSlogan: "", menuUrl: "", bannerImage: "", description: "" },
+  music: { cuisineName: "", serviceSlogan: "", menuUrl: "", bannerImage: "", description: "" },
+  furniture: { cuisineName: "", serviceSlogan: "", menuUrl: "", bannerImage: "", description: "" },
+  servant: { cuisineName: "", serviceSlogan: "", menuUrl: "", bannerImage: "", description: "" },
+  entertain: { cuisineName: "", serviceSlogan: "", menuUrl: "", bannerImage: "", description: "" },
 };
 
 const getCategoryDefaults = (categoryOrName = "") => {
@@ -673,18 +619,18 @@ export default function ServicesManager() {
               ...prev,
               serviceId: activeSvc._id,
               serviceName: activeSvc.serviceName || prev.serviceName || meta.title,
-              serviceDescription: activeSvc.serviceDescription || activeSvc.description || prev.serviceDescription || catDefaults.description,
+              serviceDescription: activeSvc.serviceDescription || activeSvc.description || prev.serviceDescription || "",
               serviceSubcategoryIds: Array.isArray(activeSvc.serviceSubcategoryIds) && activeSvc.serviceSubcategoryIds.length > 0
                 ? activeSvc.serviceSubcategoryIds.map(getId)
                 : prev.serviceSubcategoryIds,
-              cuisineName: activeSvc.cuisineName || prev.cuisineName || catDefaults.cuisineName,
-              menuUrl: activeSvc.menuUrl || prev.menuUrl || catDefaults.menuUrl,
-              webUrl: activeSvc.webUrl || prev.webUrl || (activeSvc.menuUrl ? activeSvc.menuUrl.replace(/\/menu.*$/, "") : "https://eventuna.com"),
-              phone: activeSvc.phone || prev.phone || (profileRes?.data?.mobile ? `${profileRes.data.countryCode || "+966"} ${profileRes.data.mobile}` : "+966 50 123 4567"),
-              commercialPermitNumber: activeSvc.commercialPermitNumber || prev.commercialPermitNumber || "1010987654",
-              vatNumber: activeSvc.vatNumber || profileRes?.data?.vatNumber || prev.vatNumber || "310123456700003",
+              cuisineName: activeSvc.cuisineName || prev.cuisineName || "",
+              menuUrl: activeSvc.menuUrl || prev.menuUrl || "",
+              webUrl: activeSvc.webUrl || prev.webUrl || "",
+              phone: activeSvc.phone || prev.phone || (profileRes?.data?.mobile ? `${profileRes.data.countryCode || ""} ${profileRes.data.mobile}`.trim() : ""),
+              commercialPermitNumber: activeSvc.commercialPermitNumber || prev.commercialPermitNumber || "",
+              vatNumber: activeSvc.vatNumber || profileRes?.data?.vatNumber || prev.vatNumber || "",
               onlineReservation: activeSvc.onlineReservation !== undefined ? Boolean(activeSvc.onlineReservation) : prev.onlineReservation,
-              serviceSlogan: activeSvc.serviceSlogan || prev.serviceSlogan || catDefaults.serviceSlogan,
+              serviceSlogan: activeSvc.serviceSlogan || prev.serviceSlogan || "",
             }));
             if (activeSvc.bannerImage) {
               setBannerPreview(activeSvc.bannerImage);
@@ -825,10 +771,10 @@ export default function ServicesManager() {
     const defaultPhone =
       (targetService?.phone && targetService.phone.trim()) ||
       (merchantProfile?.mobile
-        ? `${merchantProfile.countryCode || "+966"} ${merchantProfile.mobile}`
+        ? `${merchantProfile.countryCode || ""} ${merchantProfile.mobile}`.trim()
         : authService.getUser()?.mobile
-        ? `${authService.getUser()?.countryCode || "+966"} ${authService.getUser()?.mobile}`
-        : "+966 50 123 4567");
+        ? `${authService.getUser()?.countryCode || ""} ${authService.getUser()?.mobile}`.trim()
+        : "");
 
     // Local cached form data for this service (if previously entered)
     let cachedForm = {};
@@ -844,33 +790,33 @@ export default function ServicesManager() {
       (targetService?.serviceDescription && targetService.serviceDescription.trim()) ||
       (targetService?.description && targetService.description.trim()) ||
       cachedForm.serviceDescription ||
-      catDefaults.description;
+      "";
     const finalCuisine =
-      (targetService?.cuisineName && targetService.cuisineName.trim()) || cachedForm.cuisineName || catDefaults.cuisineName;
+      (targetService?.cuisineName && targetService.cuisineName.trim()) || cachedForm.cuisineName || "";
     const finalMenuUrl =
       (targetService?.menuUrl && targetService.menuUrl.trim()) ||
       (targetService?.webUrl && targetService.webUrl.trim()) ||
       cachedForm.menuUrl ||
-      catDefaults.menuUrl;
+      "";
     const finalPhone =
       (targetService?.phone && targetService.phone.trim()) || cachedForm.phone || defaultPhone;
     const finalWebUrl =
       (targetService?.webUrl && targetService.webUrl.trim()) ||
       cachedForm.webUrl ||
-      (finalMenuUrl ? finalMenuUrl.replace(/\/menu.*$/, "") : "https://eventuna.com");
+      "";
     const finalCommercialPermit =
       (targetService?.commercialPermitNumber && targetService.commercialPermitNumber.trim()) ||
       cachedForm.commercialPermitNumber ||
-      "1010987654";
+      "";
     const finalVatNumber =
       (targetService?.vatNumber && targetService.vatNumber.trim()) ||
       (merchantProfile?.vatNumber && merchantProfile.vatNumber.trim()) ||
       cachedForm.vatNumber ||
-      "310123456700003";
+      "";
     const finalSlogan =
-      (targetService?.serviceSlogan && targetService.serviceSlogan.trim()) || cachedForm.serviceSlogan || catDefaults.serviceSlogan;
+      (targetService?.serviceSlogan && targetService.serviceSlogan.trim()) || cachedForm.serviceSlogan || "";
     const finalBanner =
-      (targetService?.bannerImage && targetService.bannerImage.trim()) || cachedForm.bannerImage || catDefaults.bannerImage;
+      (targetService?.bannerImage && targetService.bannerImage.trim()) || cachedForm.bannerImage || "";
 
     // 1. Recover saved subcategories from both targetService and localStorage
     const savedSubIds = [];
@@ -2390,7 +2336,7 @@ export default function ServicesManager() {
                                 alt="Branch Preview"
                                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                 onError={(e) => {
-                                  e.target.src = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80";
+                                  e.target.style.display = "none";
                                 }}
                               />
                             </div>
@@ -2549,7 +2495,7 @@ export default function ServicesManager() {
                             ? dishPhotoUrl
                             : dishPhotoUrl
                             ? `https://event-una-image-bucket.s3.amazonaws.com/merchant/products/${dishPhotoUrl}`
-                            : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80";
+                            : "";
 
                           return (
                             <div

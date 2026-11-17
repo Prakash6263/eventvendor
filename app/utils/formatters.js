@@ -1,30 +1,17 @@
 export const EVENT_DEFAULT_SVG = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-  <defs>
-    <linearGradient id="evtGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4f46e5"/>
-      <stop offset="50%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#8b5cf6"/>
-    </linearGradient>
-  </defs>
-  <rect width="120" height="120" rx="16" fill="url(#evtGrad)"/>
-  <g fill="#ffffff" opacity="0.95" transform="translate(36, 34) scale(2.2)">
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
+  <rect width="300" height="200" fill="#f8fafc"/>
+  <rect x="0.5" y="0.5" width="299" height="199" fill="none" stroke="#e2e8f0"/>
+  <g fill="#94a3b8" transform="translate(136, 68) scale(2.2)">
     <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
     <path d="M11 7.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-4 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-4 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
   </g>
+  <text x="150" y="142" text-anchor="middle" fill="#94a3b8" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600">No Image Available</text>
 </svg>
 `);
 
-export const DEFAULT_FALLBACK_IMAGES = [
-  "/images/event-imgs/img-1.jpg",
-  "/images/event-imgs/img-2.jpg",
-  "/images/event-imgs/img-3.jpg",
-  "/images/event-imgs/img-4.jpg",
-  "/images/event-imgs/img-5.jpg",
-  "/images/event-imgs/img-6.jpg",
-  "/images/event-imgs/img-7.jpg",
-  "/images/event-imgs/img-8.jpg"
-];
+// Deprecated: No fake demo party photos used anywhere in the application
+export const DEFAULT_FALLBACK_IMAGES = [];
 
 export const isBadEventImage = (rawImg) => {
   if (!rawImg || typeof rawImg !== "string") return true;

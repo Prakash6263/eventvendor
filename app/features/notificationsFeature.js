@@ -64,23 +64,6 @@ export function initNotificationsFeature({ data = [], allEvents = [], pendingCou
       });
     });
 
-    // Upcoming events notifications
-    allEvents.slice(0, 3).forEach((evt) => {
-      const { shortDate } = formatEventDate(evt.eventDate);
-      notifs.push({
-        id: evt._id,
-        link: `/vendor-event-details?id=${evt._id}`,
-        title: `New Event Request Update`,
-        desc: `Upcoming event "${evt.eventTitle || "Event"}" scheduled for ${shortDate || "TBA"} at ${evt.serviceLocationId?.address || "Main Venue"}.`,
-        time: shortDate || "Upcoming",
-        bg: "#eff6ff",
-        icon: "bi-calendar-event",
-        iconColor: "#2563eb",
-        badgeClass: "badge-soft-primary",
-        badgeText: "Scheduled Event"
-      });
-    });
-
     if (notifs.length > 0) {
       notifRow.innerHTML = `
         <div class="col-12 mb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">

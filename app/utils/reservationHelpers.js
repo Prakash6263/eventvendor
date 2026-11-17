@@ -1,4 +1,4 @@
-import { formatEventDate, getStatusInfo, getEventImg, DEFAULT_FALLBACK_IMAGES } from "./formatters";
+import { formatEventDate, getStatusInfo, getEventImg, EVENT_DEFAULT_SVG } from "./formatters";
 
 export const resolveItemEvent = (item, allEvents = []) => {
   if (item?.eventId && typeof item.eventId === "object") return item.eventId;
@@ -41,7 +41,7 @@ export const resolveProducts = (item) => {
     let photoUrl = "";
     if (photoRaw && String(photoRaw).startsWith("http")) photoUrl = photoRaw;
     else if (photoRaw) photoUrl = `https://event-una-image-bucket.s3.amazonaws.com/merchant/products/${photoRaw}`;
-    else photoUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80";
+    else photoUrl = "";
     return { name, quantity, price, total: price * quantity, photoUrl, description: prod?.description || "" };
   });
 };
@@ -80,9 +80,8 @@ export const getIosStatusBadge = (status) => {
 export const buildBookingRequestCardHtml = (item, idx, allEvents = []) => {
   const event = resolveItemEvent(item, allEvents);
   const location = resolveItemLocation(item, event);
-  const fallbackImg = DEFAULT_FALLBACK_IMAGES[idx % DEFAULT_FALLBACK_IMAGES.length];
-  const eventImg = getEventImg(event.image || item.image, fallbackImg);
-  const addressStr = location.address || location.addressName || location.name || event.address || item.address || "Kanadia, Indore, Madhya Pradesh, India";
+  const eventImg = getEventImg(event.image || item.image);
+  const addressStr = location.address || location.addressName || location.name || event.address || item.address || "Location not specified";
   const eventTitle = event.eventTitle || item.eventTitle || item.title || item.name || "Event Booking";
   const rawDate = event.eventDate || item.date || item.createdAt || "";
   const { shortDate } = formatEventDate(rawDate);
@@ -92,8 +91,8 @@ export const buildBookingRequestCardHtml = (item, idx, allEvents = []) => {
   return `
     <div class="modern-card p-3 mb-3 bg-white border rounded-4 shadow-xs" style="transition: all 0.2s ease;">
       <div class="d-flex align-items-start gap-3 mb-3">
-        <div class="card-image-wrap flex-shrink-0" style="width:68px; height:68px; border-radius:14px; overflow:hidden; background:#f1f5f9;">
-          <img src="${eventImg}" alt="${eventTitle}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${fallbackImg}';" />
+        <div class="card-image-wrap flex-shrink-0" style="width:68px; height:68px; border-radius:14px; overflow:hidden; background:#f1f5f9; border:1px solid #e2e8f0;">
+          <img src="${eventImg}" alt="${eventTitle}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${EVENT_DEFAULT_SVG}';" />
         </div>
         <div class="flex-grow-1 overflow-hidden">
           <h6 class="fw-bold mb-1 text-dark text-truncate" style="font-size:16px;">${eventTitle}</h6>
@@ -121,17 +120,16 @@ export const buildBookingRequestCardHtml = (item, idx, allEvents = []) => {
 export const buildListItemHtml = (item, idx, allEvents = []) => {
   const event = resolveItemEvent(item, allEvents);
   const location = resolveItemLocation(item, event);
-  const fallbackImg = DEFAULT_FALLBACK_IMAGES[idx % DEFAULT_FALLBACK_IMAGES.length];
-  const eventImg = getEventImg(event.image || item.image, fallbackImg);
-  const addressStr = location.address || location.addressName || location.name || event.address || item.address || "Kanadia, Indore, Madhya Pradesh, India";
+  const eventImg = getEventImg(event.image || item.image);
+  const addressStr = location.address || location.addressName || location.name || event.address || item.address || "Location not specified";
   const eventTitle = event.eventTitle || item.eventTitle || item.title || item.name || "Restaurant Reservation";
   const resId = item._id || item.id || "";
 
   return `
     <a href="/vendor-reservation-details?id=${resId}" class="text-decoration-none" style="display:block;">
       <div class="modern-card d-flex align-items-center gap-3 p-3 mb-3 bg-white border rounded-3 shadow-xs">
-        <div class="card-image-wrap flex-shrink-0" style="width:64px; height:64px; border-radius:12px; overflow:hidden;">
-          <img src="${eventImg}" alt="${eventTitle}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${fallbackImg}';" />
+        <div class="card-image-wrap flex-shrink-0" style="width:64px; height:64px; border-radius:12px; overflow:hidden; background:#f1f5f9; border:1px solid #e2e8f0;">
+          <img src="${eventImg}" alt="${eventTitle}" style="width:100%; height:100%; object-fit:cover;" onError="this.onerror=null;this.src='${EVENT_DEFAULT_SVG}';" />
         </div>
         <div class="flex-grow-1 overflow-hidden">
           <h6 class="fw-bold mb-1 text-dark text-truncate" style="font-size:15px;">${eventTitle}</h6>

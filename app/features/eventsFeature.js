@@ -1,10 +1,9 @@
-import { formatEventDate, getDateCondition, DEFAULT_FALLBACK_IMAGES, EVENT_DEFAULT_SVG, isBadEventImage } from "../utils/formatters";
+import { formatEventDate, getDateCondition, EVENT_DEFAULT_SVG, isBadEventImage } from "../utils/formatters";
 
-function resolveEventImage(rawImg, idx) {
-  const fallbackImg = DEFAULT_FALLBACK_IMAGES[idx % DEFAULT_FALLBACK_IMAGES.length];
+function resolveEventImage(rawImg) {
   const isBad = isBadEventImage(rawImg);
   return {
-    src: isBad ? fallbackImg : rawImg,
+    src: isBad ? EVENT_DEFAULT_SVG : rawImg,
     fallback: EVENT_DEFAULT_SVG
   };
 }
@@ -12,8 +11,8 @@ function resolveEventImage(rawImg, idx) {
 // ── Horizontal List Row View (Matching Reservation-List style) ─────────────
 function renderEventListHtml(eventsList) {
   return eventsList
-    .map((event, idx) => {
-      const { src: eventImg, fallback: fallbackImg } = resolveEventImage(event.image, idx);
+    .map((event) => {
+      const { src: eventImg, fallback: fallbackImg } = resolveEventImage(event.image);
       const locationAddress = event.serviceLocationId?.address || event.serviceLocationId?.addressName || "Location not specified";
       const userName = event.userId?.fullName || "Guest User";
       const eventId = event._id || "";
@@ -349,13 +348,44 @@ export function initEventsFeature(eventsData = [], path) {
   if (path === "/vendor-event-details") {
     const params = new URLSearchParams(window.location.search);
     const eventId = params.get("id");
-    const event = eventsData.find((e) => e._id === eventId) || eventsData[0];
-    if (!event) return;
+    const detailContainer = document.querySelector(".col-lg-9 .content-card, .user-profile-wrapper .content-card");
 
-    const fallbackImg = DEFAULT_FALLBACK_IMAGES[0];
+    if (!eventId) {
+      if (detailContainer) {
+        detailContainer.innerHTML = `
+          <div class="text-center py-5">
+            <i class="fa-solid fa-calendar-xmark text-muted mb-3" style="font-size: 42px;"></i>
+            <h5 class="fw-bold text-dark mb-1">No Event Selected</h5>
+            <p class="text-muted small mb-4">Please select an event from the events list to view details.</p>
+            <a href="/all-events" class="btn btn-primary rounded-pill px-4 fw-semibold btn-sm">
+              <i class="fa-solid fa-arrow-left me-1"></i> View All Events
+            </a>
+          </div>
+        `;
+      }
+      return;
+    }
+
+    const event = eventsData.find((e) => String(e._id) === String(eventId) || String(e.id) === String(eventId));
+    if (!event) {
+      if (detailContainer) {
+        detailContainer.innerHTML = `
+          <div class="text-center py-5">
+            <i class="fa-solid fa-calendar-xmark text-muted mb-3" style="font-size: 42px;"></i>
+            <h5 class="fw-bold text-dark mb-1">Event Not Found</h5>
+            <p class="text-muted small mb-4">We could not find an event with the requested ID. It may have been removed or does not exist.</p>
+            <a href="/all-events" class="btn btn-primary rounded-pill px-4 fw-semibold btn-sm">
+              <i class="fa-solid fa-arrow-left me-1"></i> Back to All Events
+            </a>
+          </div>
+        `;
+      }
+      return;
+    }
+
     const rawEvtImg = event.image || "";
     const isBadEvtImg = isBadEventImage(rawEvtImg);
-    const eventImg = isBadEvtImg ? fallbackImg : rawEvtImg;
+    const eventImg = isBadEvtImg ? EVENT_DEFAULT_SVG : rawEvtImg;
     const locationAddress = event.serviceLocationId?.address || event.serviceLocationId?.addressName || "Location not specified";
     const organizer =
       event.userId && typeof event.userId === "object"
@@ -376,9 +406,6 @@ export function initEventsFeature(eventsData = [], path) {
       .filter(Boolean);
     const { date: formattedDate, time: formattedTime } = formatEventDate(event.eventDate, event.eventStartTime, event.eventEndTime);
     const cond = getDateCondition(event.eventDate, event.status);
-
-    const detailContainer = document.querySelector(".col-lg-9 .content-card, .user-profile-wrapper .content-card");
-    if (!detailContainer) return;
 
     detailContainer.innerHTML = `
       <!-- Header with Clean Professional Back Navigation & Status Badge -->

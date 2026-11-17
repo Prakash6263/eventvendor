@@ -669,6 +669,21 @@ export const deleteMerchantServiceApi = async (serviceId) => {
   });
 };
 
+// 16. Pending / Cancelled Event Notifications API (from updated Postman collection)
+export const getPendingCancelledEventsApi = async () => {
+  return await apiRequest("https://eventuna.com/api/merchant/pending-cancelled-events", {
+    method: "GET",
+  });
+};
+
+// 17. Merchant Rating API (from updated Postman collection)
+export const rateMerchantApi = async ({ merchantId, rating, comment }) => {
+  return await apiRequest("https://eventuna.com/api/merchant/rate", {
+    method: "POST",
+    body: { merchantId, rating, comment },
+  });
+};
+
 export const authApi = {
   getMerchantAllEvents: getMerchantAllEventsApi,
   getMerchantOnlyEvents: getMerchantOnlyEventsApi,
@@ -713,6 +728,8 @@ export const authApi = {
   addMerchantCoupon: addMerchantCouponApi,
   updateMerchantCoupon: updateMerchantCouponApi,
   deleteMerchantCoupon: deleteMerchantCouponApi,
+  getPendingCancelledEvents: getPendingCancelledEventsApi,
+  rateMerchant: rateMerchantApi,
   syncContacts: syncContactsApi,
   getAllUsers: getAllUsersApi,
   getAddresses: getAddressesApi,

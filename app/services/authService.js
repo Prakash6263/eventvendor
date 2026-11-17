@@ -44,6 +44,8 @@ import {
   addMerchantCouponApi,
   updateMerchantCouponApi,
   deleteMerchantCouponApi,
+  getPendingCancelledEventsApi,
+  rateMerchantApi,
   getAddressesApi,
   addAddressApi,
 } from "./authApi";
@@ -98,6 +100,8 @@ export {
   addMerchantCouponApi,
   updateMerchantCouponApi,
   deleteMerchantCouponApi,
+  getPendingCancelledEventsApi,
+  rateMerchantApi,
   getAddressesApi,
   addAddressApi,
 };
@@ -151,6 +155,8 @@ export const authService = {
   addMerchantCoupon: addMerchantCouponApi,
   updateMerchantCoupon: updateMerchantCouponApi,
   deleteMerchantCoupon: deleteMerchantCouponApi,
+  getPendingCancelledEvents: getPendingCancelledEventsApi,
+  rateMerchant: rateMerchantApi,
   getAddresses: getAddressesApi,
   addAddress: addAddressApi,
 };

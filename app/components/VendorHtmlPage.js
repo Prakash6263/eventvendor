@@ -111,7 +111,7 @@ export default function VendorHtmlPage({ markup }) {
         const path = window.location.pathname;
         const heroTitle = document.querySelector(".hero-banner-content h2");
         if (heroTitle) {
-          if (path === "/all-events") heroTitle.textContent = "Upcoming Events";
+          if (path === "/all-events") heroTitle.textContent = "All Events";
           else if (path === "/vendor-profile") heroTitle.textContent = "Vendor Profile";
           else if (path === "/reservation-list") heroTitle.textContent = "Booking Request";
           else if (path === "/notifications") heroTitle.textContent = "Notifications";

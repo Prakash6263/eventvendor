@@ -1,8 +1,42 @@
+export const EVENT_DEFAULT_SVG = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="evtGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="16" fill="url(#evtGrad)"/>
+  <g fill="#ffffff" opacity="0.95" transform="translate(36, 34) scale(2.2)">
+    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+    <path d="M11 7.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-4 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-4 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
+  </g>
+</svg>
+`);
+
 export const DEFAULT_FALLBACK_IMAGES = [
-  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80"
+  "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=800&q=80"
 ];
+
+export const isBadEventImage = (rawImg) => {
+  if (!rawImg || typeof rawImg !== "string" || !rawImg.startsWith("http")) return true;
+  const lower = rawImg.toLowerCase();
+  return (
+    lower.includes("tap to upload") ||
+    lower.includes("placeholder") ||
+    lower.includes("default_upload") ||
+    lower.includes("encrypted-tbn0") ||
+    lower.includes("depositphotos") ||
+    lower.includes("via.placeholder") ||
+    lower.includes("ui-avatars.com") ||
+    lower.includes("and9gc")
+  );
+};
 
 export const parseDateSafe = (dateVal) => {
   if (!dateVal) return null;
@@ -44,18 +78,53 @@ export const formatEventDate = (dateStr, startTime, endTime) => {
 };
 
 export const getDateCondition = (dateVal, statusStr = "") => {
-  const s = String(statusStr || "").toLowerCase();
+  const s = String(statusStr || "").toLowerCase().trim();
   if (["ongoingevent", "ongoing"].includes(s)) {
-    return { label: "Ongoing", badgeClass: "badge-soft-success", dotClass: "status-dot status-dot-success" };
+    return {
+      label: "Ongoing",
+      type: "ongoing",
+      badgeClass: "badge-soft-success",
+      dotClass: "status-dot status-dot-success",
+      icon: "bi-broadcast"
+    };
   }
   if (s === "draft") {
-    return { label: "Draft", badgeClass: "badge-soft-neutral", dotClass: "status-dot" };
+    return {
+      label: "Draft",
+      type: "draft",
+      badgeClass: "badge-soft-neutral",
+      dotClass: "status-dot",
+      icon: "bi-pencil"
+    };
   }
   if (["completed", "finished"].includes(s)) {
-    return { label: "Completed", badgeClass: "badge-soft-neutral", dotClass: "status-dot" };
+    return {
+      label: "Completed",
+      type: "past",
+      badgeClass: "badge-soft-neutral",
+      dotClass: "status-dot",
+      icon: "bi-check2-all"
+    };
+  }
+  if (["cancelled", "canceled", "declined", "rejected"].includes(s)) {
+    return {
+      label: "Cancelled",
+      type: "cancelled",
+      badgeClass: "badge-soft-danger",
+      dotClass: "status-dot status-dot-danger",
+      icon: "bi-x-circle"
+    };
   }
   const dt = parseDateSafe(dateVal);
-  if (!dt) return { label: statusStr || "Scheduled", badgeClass: "badge-soft-primary", dotClass: "status-dot status-dot-primary" };
+  if (!dt) {
+    return {
+      label: statusStr || "Scheduled",
+      type: "upcoming",
+      badgeClass: "badge-soft-primary",
+      dotClass: "status-dot status-dot-primary",
+      icon: "bi-calendar-event"
+    };
+  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -63,10 +132,40 @@ export const getDateCondition = (dateVal, statusStr = "") => {
   target.setHours(0, 0, 0, 0);
   const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return { label: "Today", badgeClass: "badge-soft-warning", dotClass: "status-dot status-dot-warning" };
-  if (diffDays === 1) return { label: "Tomorrow", badgeClass: "badge-soft-primary", dotClass: "status-dot status-dot-primary" };
-  if (diffDays < 0) return { label: "Past Event", badgeClass: "badge-soft-neutral", dotClass: "status-dot" };
-  return { label: "Upcoming", badgeClass: "badge-soft-primary", dotClass: "status-dot status-dot-primary" };
+  if (diffDays === 0) {
+    return {
+      label: "Today",
+      type: "upcoming",
+      badgeClass: "badge-soft-warning",
+      dotClass: "status-dot status-dot-warning",
+      icon: "bi-lightning-charge-fill"
+    };
+  }
+  if (diffDays === 1) {
+    return {
+      label: "Tomorrow",
+      type: "upcoming",
+      badgeClass: "badge-soft-primary",
+      dotClass: "status-dot status-dot-primary",
+      icon: "bi-clock"
+    };
+  }
+  if (diffDays < 0) {
+    return {
+      label: "Past Event",
+      type: "past",
+      badgeClass: "badge-soft-neutral",
+      dotClass: "status-dot",
+      icon: "bi-clock-history"
+    };
+  }
+  return {
+    label: "Upcoming",
+    type: "upcoming",
+    badgeClass: "badge-soft-primary",
+    dotClass: "status-dot status-dot-primary",
+    icon: "bi-calendar-check"
+  };
 };
 
 export const getStatusInfo = (statusStr) => {
@@ -81,9 +180,7 @@ export const getStatusInfo = (statusStr) => {
 };
 
 export const getEventImg = (rawImg, fallback) => {
-  if (!rawImg || typeof rawImg !== "string" || !rawImg.startsWith("http")) return fallback;
-  const lower = rawImg.toLowerCase();
-  if (lower.includes("tap to upload") || lower.includes("placeholder") || lower.includes("default_upload")) return fallback;
+  if (isBadEventImage(rawImg)) return fallback || EVENT_DEFAULT_SVG;
   return rawImg;
 };
 

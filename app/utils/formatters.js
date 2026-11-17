@@ -16,11 +16,14 @@ export const EVENT_DEFAULT_SVG = "data:image/svg+xml;charset=UTF-8," + encodeURI
 `);
 
 export const DEFAULT_FALLBACK_IMAGES = [
-  "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=800&q=80"
+  "/images/event-imgs/img-1.jpg",
+  "/images/event-imgs/img-2.jpg",
+  "/images/event-imgs/img-3.jpg",
+  "/images/event-imgs/img-4.jpg",
+  "/images/event-imgs/img-5.jpg",
+  "/images/event-imgs/img-6.jpg",
+  "/images/event-imgs/img-7.jpg",
+  "/images/event-imgs/img-8.jpg"
 ];
 
 export const isBadEventImage = (rawImg) => {

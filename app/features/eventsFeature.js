@@ -32,17 +32,17 @@ function renderEventListHtml(eventsList) {
       } else if (cond.type === "upcoming") {
         statusBadgeHtml = `
           <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold" style="font-size:11.5px;">
-            <i class="bi ${cond.icon}"></i> ${cond.label}
+            <i class="fa-regular fa-calendar-check text-primary"></i> ${cond.label}
           </span>`;
       } else if (cond.type === "past") {
         statusBadgeHtml = `
           <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-medium" style="font-size:11.5px;">
-            <i class="bi bi-clock-history"></i> Completed
+            <i class="fa-solid fa-clock-rotate-left"></i> Completed
           </span>`;
       } else if (cond.type === "cancelled") {
         statusBadgeHtml = `
           <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 fw-semibold" style="font-size:11.5px;">
-            <i class="bi bi-x-circle"></i> Cancelled
+            <i class="fa-regular fa-circle-xmark"></i> Cancelled
           </span>`;
       } else {
         statusBadgeHtml = `
@@ -60,31 +60,31 @@ function renderEventListHtml(eventsList) {
               </div>
               <div class="flex-grow-1 overflow-hidden">
                 <div class="d-flex align-items-center justify-content-between mb-1 gap-2">
-                  <h6 class="fw-bold mb-0 text-dark text-truncate" style="font-size:15px; letter-spacing:-0.2px;">${event.eventTitle || 'Untitled Event'}</h6>
+                  <h6 class="fw-bold mb-0 text-dark text-truncate" style="font-size:15px; letter-spacing:-0.2px; font-family:'Poppins', sans-serif;">${event.eventTitle || 'Untitled Event'}</h6>
                   ${shortDate ? `
                     <span class="badge ${cond.type === 'upcoming' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-light text-secondary border'} flex-shrink-0 px-2.5 py-1 rounded-pill" style="font-size:11.5px;">
-                      <i class="bi bi-calendar3 me-1 ${cond.type === 'upcoming' ? 'text-primary' : 'text-muted'}"></i>${shortDate}
+                      <i class="fa-regular fa-calendar-days me-1 ${cond.type === 'upcoming' ? 'text-primary' : 'text-muted'}"></i>${shortDate}
                     </span>` : ""}
                 </div>
                 <p class="text-muted small mb-2 text-truncate" title="${locationAddress}" style="font-size:12.5px;">
-                  <i class="bi bi-geo-alt me-1 text-danger"></i>${locationAddress}
+                  <i class="fa-solid fa-location-dot me-1.5 text-danger"></i>${locationAddress}
                 </p>
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                   ${statusBadgeHtml}
                   <div class="d-flex align-items-center gap-3">
                     ${event.eventStartTime ? `
-                      <small class="text-muted fw-medium"><i class="bi bi-clock me-1 text-primary"></i>${event.eventStartTime}${event.eventEndTime ? ` - ${event.eventEndTime}` : ''}</small>
+                      <small class="text-muted fw-medium"><i class="fa-regular fa-clock me-1 text-primary"></i>${event.eventStartTime}${event.eventEndTime ? ` - ${event.eventEndTime}` : ''}</small>
                     ` : ''}
                     ${invitedCount > 0 ? `
-                      <small class="text-muted fw-medium"><i class="bi bi-people me-1 text-primary"></i>${invitedCount} Guest(s)</small>
+                      <small class="text-muted fw-medium"><i class="fa-solid fa-user-group me-1 text-primary"></i>${invitedCount} Guest(s)</small>
                     ` : `
-                      <small class="text-muted fw-medium"><i class="bi bi-person me-1 text-primary"></i>${userName}</small>
+                      <small class="text-muted fw-medium"><i class="fa-regular fa-user me-1 text-primary"></i>${userName}</small>
                     `}
                   </div>
                 </div>
               </div>
               <div class="flex-shrink-0 ms-1 d-flex align-items-center justify-content-center" style="width:34px; height:34px; border-radius:50%; background:#f8fafc; border:1px solid #edf2f7; color:#64748b; transition:all 0.2s ease;">
-                <i class="bi bi-chevron-right" style="font-size:13px;"></i>
+                <i class="fa-solid fa-chevron-right" style="font-size:12px;"></i>
               </div>
             </div>
           </a>
@@ -147,7 +147,7 @@ export function initEventsFeature(eventsData = [], path) {
               </button>
             </div>
             <a href="/all-events" class="text-decoration-none text-primary fw-semibold small ms-1 d-inline-flex align-items-center gap-1">
-              See All <i class="bi bi-chevron-right" style="font-size:11px;"></i>
+              See All <i class="fa-solid fa-angle-right" style="font-size:11px;"></i>
             </a>
           </div>
         </div>
@@ -192,13 +192,13 @@ export function initEventsFeature(eventsData = [], path) {
             <div class="col-12">
               <div class="text-center text-muted py-4 w-100" style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:14px;">
                 <div class="mx-auto mb-2 d-inline-flex align-items-center justify-content-center" style="width:48px;height:48px;border-radius:50%;background:#eef2ff;color:#4f46e5;">
-                  <i class="bi bi-calendar2-check fs-4"></i>
+                  <i class="fa-regular fa-calendar-check fs-4"></i>
                 </div>
-                <h6 class="fw-bold mt-1 mb-1 text-dark">No ${tab === 'upcoming' ? 'Upcoming' : (tab === 'ongoing' ? 'Ongoing' : 'Past')} Events</h6>
+                <h6 class="fw-bold mt-1 mb-1 text-dark" style="font-family:'Poppins', sans-serif;">No ${tab === 'upcoming' ? 'Upcoming' : (tab === 'ongoing' ? 'Ongoing' : 'Past')} Events</h6>
                 <p class="small text-muted mb-3">${tab === 'upcoming' ? "You don't have any upcoming bookings scheduled on your calendar." : "No records found under this section."}</p>
                 ${(tab === 'upcoming' && pastEvents.length > 0) ? `
                   <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" id="view-past-events-btn">
-                    <i class="bi bi-clock-history me-1"></i> View Past Events (${pastEvents.length})
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i> View Past Events (${pastEvents.length})
                   </button>
                 ` : ''}
               </div>
@@ -382,9 +382,9 @@ export function initEventsFeature(eventsData = [], path) {
     detailContainer.innerHTML = `
       <div class="mb-3">
         <a href="/all-events" class="text-decoration-none text-muted d-inline-flex align-items-center gap-2 mb-3 fw-semibold" style="font-size:14px;">
-          <i class="bi bi-arrow-left"></i> Back to Events
+          <i class="fa-solid fa-arrow-left"></i> Back to Events
         </a>
-        <h5 class="fw-bold mb-0">Event Detail</h5>
+        <h5 class="fw-bold mb-0" style="font-family:'Poppins', sans-serif;">Event Detail</h5>
       </div>
 
       <!-- Event Image Banner -->
@@ -399,14 +399,14 @@ export function initEventsFeature(eventsData = [], path) {
       </div>
 
       <!-- Title -->
-      <h4 class="fw-bold text-dark mb-4">${event.eventTitle || "Event"}</h4>
+      <h4 class="fw-bold text-dark mb-4" style="font-family:'Poppins', sans-serif;">${event.eventTitle || "Event"}</h4>
 
       <!-- Info rows -->
       <div class="d-flex flex-column gap-3 mb-4">
         <!-- Date & Time -->
         <div class="modern-info-tile d-flex align-items-center gap-3">
           <div class="icon-box-primary flex-shrink-0">
-            <i class="bi bi-calendar-event" style="font-size:18px;"></i>
+            <i class="fa-solid fa-calendar-days" style="font-size:18px;"></i>
           </div>
           <div>
             <div class="fw-semibold text-dark" style="font-size:15px;">${formattedDate}</div>
@@ -417,7 +417,7 @@ export function initEventsFeature(eventsData = [], path) {
         <!-- Invited Guests -->
         <div class="modern-info-tile d-flex align-items-center gap-3">
           <div class="icon-box-primary flex-shrink-0">
-            <i class="bi bi-people" style="font-size:18px;"></i>
+            <i class="fa-solid fa-users" style="font-size:18px;"></i>
           </div>
           <div>
             <div class="fw-semibold text-dark" style="font-size:15px;">Invited Guests</div>
@@ -428,7 +428,7 @@ export function initEventsFeature(eventsData = [], path) {
         <!-- Location -->
         <div class="modern-info-tile d-flex align-items-center gap-3">
           <div class="icon-box-primary flex-shrink-0">
-            <i class="bi bi-geo-alt" style="font-size:18px;"></i>
+            <i class="fa-solid fa-location-dot" style="font-size:18px;"></i>
           </div>
           <div class="overflow-hidden">
             <div class="fw-semibold text-dark" style="font-size:15px;">Location</div>
@@ -446,7 +446,7 @@ export function initEventsFeature(eventsData = [], path) {
             </div>
           </div>
           <a href="/chat?eventId=${event._id || ''}&userId=${organizer._id || ''}" class="btn-modern-primary d-inline-flex align-items-center gap-2" style="font-size:13px; text-decoration:none; padding:7px 16px; border-radius:9999px;">
-            <i class="bi bi-chat-dots-fill"></i> Chat
+            <i class="fa-solid fa-comments"></i> Chat
           </a>
         </div>
       </div>
@@ -454,7 +454,7 @@ export function initEventsFeature(eventsData = [], path) {
       <!-- Special Notes / Description -->
       ${event.description ? `
       <div class="mb-4">
-        <h6 class="fw-bold text-dark mb-2">Special Notes</h6>
+        <h6 class="fw-bold text-dark mb-2" style="font-family:'Poppins', sans-serif;">Special Notes</h6>
         <div class="p-3 rounded-3" style="background:#f8fafc; border-left:4px solid #5b6ef5; font-size:14px; color:#4a5568; line-height:1.6; border:1px solid #edf2f7; border-left-width:4px;">
           ${event.description}
         </div>
@@ -463,11 +463,11 @@ export function initEventsFeature(eventsData = [], path) {
       <!-- Additional Services -->
       ${visibleServices.length > 0 ? `
       <div class="mb-4">
-        <h6 class="fw-bold text-dark mb-2">Additional Services</h6>
+        <h6 class="fw-bold text-dark mb-2" style="font-family:'Poppins', sans-serif;">Additional Services</h6>
         <div class="d-flex gap-2 flex-wrap">
           ${visibleServices.map(serviceName => `
             <span class="badge-soft-primary">
-              <i class="bi bi-check2-circle me-1"></i>${serviceName}
+              <i class="fa-solid fa-check me-1"></i>${serviceName}
             </span>
           `).join("")}
         </div>
@@ -475,9 +475,9 @@ export function initEventsFeature(eventsData = [], path) {
 
       <!-- Event Meta -->
       <div class="d-flex gap-2 flex-wrap mb-4">
-        ${event.guestTypeEvent ? `<span class="badge-soft-success"><i class="bi bi-person-check me-1"></i>${event.guestTypeEvent}</span>` : ""}
-        ${event.bringaLongGuest === "Yes" ? `<span class="badge-soft-warning"><i class="bi bi-people me-1"></i>Bring-a-long: ${event.bringaLongNumber || 0}</span>` : ""}
-        ${event.rvsp === "Yes" ? `<span class="badge-soft-danger"><i class="bi bi-envelope me-1"></i>RSVP: ${event.rvspDate}</span>` : ""}
+        ${event.guestTypeEvent ? `<span class="badge-soft-success"><i class="fa-solid fa-user-check me-1"></i>${event.guestTypeEvent}</span>` : ""}
+        ${event.bringaLongGuest === "Yes" ? `<span class="badge-soft-warning"><i class="fa-solid fa-users me-1"></i>Bring-a-long: ${event.bringaLongNumber || 0}</span>` : ""}
+        ${event.rvsp === "Yes" ? `<span class="badge-soft-danger"><i class="fa-regular fa-envelope me-1"></i>RSVP: ${event.rvspDate}</span>` : ""}
       </div>
     `;
   }

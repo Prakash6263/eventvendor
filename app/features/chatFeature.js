@@ -12,6 +12,15 @@ export function initChatFeature() {
   const chatForm = document.querySelector("#chatForm");
   const messageInput = document.querySelector("#messageInput");
 
+  // Remove dummy file/image attachment buttons since chat API is text-only
+  if (chatForm) {
+    const dummyIcons = chatForm.querySelectorAll('button[title*="Attach"], .bi-paperclip, .bi-image');
+    dummyIcons.forEach((el) => {
+      const btn = el.tagName === "BUTTON" ? el : el.closest("button");
+      if (btn) btn.remove();
+    });
+  }
+
   if (!eventId || !userId) {
     if (chatBody) {
       chatBody.innerHTML = `<div class="text-center text-muted py-5">Chat details are missing. Please return to the reservation and try again.</div>`;

@@ -224,3 +224,67 @@ export const getEntityId = (value) => {
   return typeof value === "string" ? value : (value._id || value.id || "");
 };
 
+export const BRANCH_DEFAULT_SVG = ("data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="280" viewBox="0 0 400 280">
+  <defs>
+    <linearGradient id="branchBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="280" fill="url(#branchBg)"/>
+  <rect x="0.5" y="0.5" width="399" height="279" fill="none" stroke="#cbd5e1"/>
+  <g transform="translate(170, 85)" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 60 L5 25 L30 10 L55 25 L55 60 Z"/>
+    <path d="M20 60 L20 40 L40 40 L40 60"/>
+    <line x1="0" y1="60" x2="60" y2="60"/>
+  </g>
+  <text x="200" y="180" text-anchor="middle" fill="#64748b" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600">Branch Photo</text>
+</svg>
+`)).replace(/'/g, "%27");
+
+export const resolveBranchMediaUrl = (item) => {
+  if (!item) return "";
+  let raw = "";
+  if (typeof item === "string") {
+    raw = item.trim();
+  } else if (typeof item === "object") {
+    raw = (
+      item.url ||
+      item.file ||
+      item.mediaUrl ||
+      item.media ||
+      item.photoUrl ||
+      item.photo ||
+      item.image ||
+      item.locationPhoto ||
+      item.thumbnailUrl ||
+      item.thumbnails ||
+      item.path ||
+      item.src ||
+      ""
+    );
+    if (typeof raw !== "string" && raw && typeof raw === "object") {
+      raw = raw.url || raw.file || raw.path || raw.src || "";
+    }
+  }
+
+  if (!raw || typeof raw !== "string") return "";
+  raw = raw.trim();
+
+  // If already full http(s) URL or data/blob URI
+  if (
+    raw.startsWith("http://") ||
+    raw.startsWith("https://") ||
+    raw.startsWith("data:") ||
+    raw.startsWith("blob:")
+  ) {
+    return raw;
+  }
+
+  // Strip leading slashes
+  const cleanPath = raw.replace(/^\/+/, "");
+  return `https://event-una-image-bucket.s3.amazonaws.com/${cleanPath}`;
+};
+
+

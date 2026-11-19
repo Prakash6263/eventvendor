@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Swal from "sweetalert2";
 import { authService } from "../services/authService";
+import { BRANCH_DEFAULT_SVG, resolveBranchMediaUrl } from "../utils/formatters";
 import LocationMapPicker from "../components/LocationMapPicker";
 import styles from "./LocationManager.module.css";
 
@@ -18,6 +19,8 @@ const createDefaultSchedule = () => DAYS.map((day) => ({
 const normalizeList = (res, keys = []) => {
   if (Array.isArray(res)) return res;
   if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.data?.locationPhotoVideoList)) return res.data.locationPhotoVideoList;
+  if (Array.isArray(res?.data?.media)) return res.data.media;
   for (const k of keys) {
     if (Array.isArray(res?.[k])) return res[k];
     if (Array.isArray(res?.data?.[k])) return res.data[k];
@@ -51,7 +54,9 @@ export default function LocationManager() {
   const [loadingGallery, setLoadingGallery] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [mediaFile, setMediaFile] = useState(null);
+  const [mediaPreview, setMediaPreview] = useState("");
   const [mediaDesc, setMediaDesc] = useState("");
+  const fileInputRef = useRef(null);
 
   // 1. Fetch Locations
   const fetchLocations = useCallback(async () => {
@@ -88,15 +93,24 @@ export default function LocationManager() {
     try {
       setLoadingGallery(true);
       const res = await authService.getMerchantLocationMedia({ locationId: locId });
-      const list = normalizeList(res, ["media", "locationMedia", "photos"]);
-      setGalleryMedia(list);
+      const list = normalizeList(res, ["media", "locationMedia", "locationPhotoVideoList", "photos", "data"]);
+      if (list && list.length > 0) {
+        setGalleryMedia(list);
+      } else {
+        // Fallback to active location's stored media if available
+        const currentLoc = locations.find((l) => (l._id || l.id || l.locationId) === locId);
+        const fallback = currentLoc?.locationPhotoVideoList || [];
+        setGalleryMedia(Array.isArray(fallback) ? fallback : []);
+      }
     } catch (err) {
       console.error("Failed to load gallery:", err);
-      setGalleryMedia([]);
+      const currentLoc = locations.find((l) => (l._id || l.id || l.locationId) === locId);
+      const fallback = currentLoc?.locationPhotoVideoList || [];
+      setGalleryMedia(Array.isArray(fallback) ? fallback : []);
     } finally {
       setLoadingGallery(false);
     }
-  }, []);
+  }, [locations]);
 
   useEffect(() => {
     if (selectedLocationId && activeTab === "gallery") {
@@ -178,8 +192,11 @@ export default function LocationManager() {
       if (res?.status) {
         Swal.fire({ icon: "success", title: "Photo Uploaded!", timer: 1500, showConfirmButton: false });
         setMediaFile(null);
+        setMediaPreview("");
         setMediaDesc("");
+        if (fileInputRef.current) fileInputRef.current.value = "";
         await fetchGallery(selectedLocationId);
+        await fetchLocations();
       } else {
         Swal.fire({ icon: "error", title: "Upload Failed", text: res?.message || "Could not upload photo." });
       }
@@ -409,10 +426,19 @@ export default function LocationManager() {
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>Select Image *</label>
                     <input
+                      ref={fileInputRef}
                       type="file"
                       accept="image/*"
                       className={styles.formInput}
-                      onChange={(e) => setMediaFile(e.target.files?.[0] || null)}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] || null;
+                        setMediaFile(f);
+                        if (f) {
+                          setMediaPreview(URL.createObjectURL(f));
+                        } else {
+                          setMediaPreview("");
+                        }
+                      }}
                     />
                   </div>
                   <div className={styles.formGroup}>
@@ -425,6 +451,36 @@ export default function LocationManager() {
                     />
                   </div>
                 </div>
+
+                {mediaPreview && (
+                  <div className="mt-3 d-flex align-items-center gap-3 p-2 bg-white rounded-3 border">
+                    <img
+                      src={mediaPreview}
+                      alt="Preview"
+                      style={{ width: "56px", height: "56px", objectFit: "cover", borderRadius: "8px" }}
+                    />
+                    <div className="flex-grow-1 min-w-0">
+                      <div className="small fw-semibold text-dark text-truncate" style={{ maxWidth: "260px" }}>
+                        {mediaFile?.name}
+                      </div>
+                      <div className="text-muted" style={{ fontSize: "11px" }}>
+                        {mediaFile?.size ? (mediaFile.size / 1024).toFixed(1) + " KB" : ""}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => {
+                        setMediaFile(null);
+                        setMediaPreview("");
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                    >
+                      <i className="fa-solid fa-xmark me-1" /> Clear
+                    </button>
+                  </div>
+                )}
+
                 <div className="mt-3 text-end">
                   <button type="submit" className={styles.primaryBtn} disabled={uploadingMedia || !mediaFile}>
                     {uploadingMedia ? "Uploading..." : "Upload Photo"}
@@ -441,18 +497,50 @@ export default function LocationManager() {
                 </div>
               ) : (
                 <div className={styles.galleryGrid}>
-                  {galleryMedia.map((item, idx) => (
-                    <div key={item._id || idx} className={styles.galleryItem}>
-                      <img
-                        src={item.mediaUrl || item.media || item.photoUrl || ""}
-                        alt={item.photoDescription || "Branch Photo"}
-                        className={styles.galleryImg}
-                      />
-                      {item.photoDescription && (
-                        <span className={styles.galleryDesc}>{item.photoDescription}</span>
-                      )}
-                    </div>
-                  ))}
+                  {galleryMedia.map((item, idx) => {
+                    const mediaUrl = resolveBranchMediaUrl(item);
+                    const photoDesc = item?.photoDescription || item?.description || item?.title || "Branch Photo";
+                    const isVideo = item?.types === "video" || item?.mediaType === "video" || /\.(mp4|webm|mov)$/i.test(mediaUrl);
+
+                    return (
+                      <div key={item?._id || item?.id || idx} className={styles.galleryItem}>
+                        {isVideo ? (
+                          <video
+                            src={mediaUrl}
+                            controls
+                            className={styles.galleryImg}
+                            poster={BRANCH_DEFAULT_SVG}
+                          />
+                        ) : (
+                          <img
+                            src={mediaUrl || BRANCH_DEFAULT_SVG}
+                            alt={photoDesc}
+                            className={styles.galleryImg}
+                            loading="lazy"
+                            onError={(e) => {
+                              if (!e.currentTarget.dataset.fallbackTried) {
+                                e.currentTarget.dataset.fallbackTried = "true";
+                                const raw = typeof item === "string" ? item : (item?.url || item?.file || item?.media || "");
+                                if (raw && typeof raw === "string" && !raw.startsWith("data:") && !raw.startsWith("blob:")) {
+                                  const clean = raw.replace(/^https?:\/\/[^/]+\//, "").replace(/^\/+/, "");
+                                  if (clean) {
+                                    e.currentTarget.src = `https://eventuna.com/${clean}`;
+                                    return;
+                                  }
+                                }
+                                e.currentTarget.src = BRANCH_DEFAULT_SVG;
+                              } else {
+                                e.currentTarget.src = BRANCH_DEFAULT_SVG;
+                              }
+                            }}
+                          />
+                        )}
+                        {photoDesc && (
+                          <span className={styles.galleryDesc}>{photoDesc}</span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -23,7 +23,17 @@ export function initChatFeature() {
 
   if (!eventId || !userId) {
     if (chatBody) {
-      chatBody.innerHTML = `<div class="text-center text-muted py-5">Chat details are missing. Please return to the reservation and try again.</div>`;
+      chatBody.innerHTML = `
+        <div class="text-center text-muted my-auto py-5">
+          <div class="mx-auto mb-3 d-inline-flex align-items-center justify-content-center" style="width:52px;height:52px;border-radius:50%;background:#fef2f2;color:#ef4444;">
+            <i class="bi bi-chat-x fs-3"></i>
+          </div>
+          <h6 class="fw-bold mb-1 text-dark" style="font-family:'Poppins', sans-serif;">Chat Details Missing</h6>
+          <p class="small text-muted mb-3">Please select a customer reservation from your booking list to chat.</p>
+          <a href="/reservation-list" class="btn btn-sm btn-primary rounded-pill px-3.5 py-1.5 fw-semibold text-decoration-none">
+            <i class="fa-solid fa-arrow-left me-1"></i> View Reservations
+          </a>
+        </div>`;
     }
     if (messageInput) messageInput.disabled = true;
     return;
@@ -80,14 +90,24 @@ export function initChatFeature() {
               ? u.profilePic
               : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || "User")}&background=5b6ef5&color=fff&size=64`;
 
-          const avatarImg = chatHeader.querySelector(".avatar-img, .user-avatar img, img:not(#chatBackBtn img)");
-          if (avatarImg) avatarImg.src = pic;
+          const avatarImg = chatHeader.querySelector(".avatar-img");
+          const placeholder = chatHeader.querySelector(".avatar-placeholder");
+          if (avatarImg) {
+            avatarImg.src = pic;
+            avatarImg.style.display = "block";
+          }
+          if (placeholder) {
+            placeholder.style.display = "none";
+          }
 
-          const nameEl = chatHeader.querySelector("h6");
+          const nameEl = chatHeader.querySelector("#chatCustomerName, h6");
           if (nameEl) nameEl.textContent = u.fullName || "Customer";
 
-          const statusText = chatHeader.querySelector("small");
+          const statusText = chatHeader.querySelector("#chatCustomerStatus, small");
           if (statusText) statusText.innerHTML = `<i class="bi bi-circle-fill me-1 text-success" style="font-size: 8px;"></i>Online • Customer`;
+
+          const onlineDot = chatHeader.querySelector(".status-indicator");
+          if (onlineDot) onlineDot.style.display = "inline-block";
         }
       }
 
@@ -98,7 +118,14 @@ export function initChatFeature() {
           lastMessagesHash = messagesHash;
           chatBody.innerHTML = "";
           if (messages.length === 0) {
-            chatBody.innerHTML = `<div class="text-center text-muted my-auto py-5"><i class="bi bi-chat-heart text-primary mb-2" style="font-size:28px;"></i><br/>Start a conversation with the customer regarding their reservation.</div>`;
+            chatBody.innerHTML = `
+              <div class="text-center text-muted my-auto py-5">
+                <div class="mx-auto mb-3 d-inline-flex align-items-center justify-content-center" style="width:52px;height:52px;border-radius:50%;background:#eef2ff;color:#4f46e5;">
+                  <i class="bi bi-chat-dots fs-3"></i>
+                </div>
+                <h6 class="fw-bold mb-1 text-dark" style="font-family:'Poppins', sans-serif;">No messages yet</h6>
+                <p class="small text-muted mb-0">Start a conversation with the customer regarding their reservation.</p>
+              </div>`;
           } else {
             messages.forEach((msg) => {
               const isOutgoing = msg.senderRole === "merchant" || msg.senderType === "merchant";

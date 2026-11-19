@@ -26,7 +26,6 @@ export const signupApi = async ({
   mobile,
   countryCode = "+966",
   password,
-  serviceId,
   ios_register_id = "IOS123",
 }) => {
   const body = {
@@ -37,9 +36,6 @@ export const signupApi = async ({
     email,
     countryCode,
   };
-  if (serviceId) {
-    body.serviceId = serviceId;
-  }
   return await apiRequest("https://eventuna.com/api/merchant/signup", {
     method: "POST",
     body,
@@ -53,6 +49,16 @@ export const verifyOtpApi = async ({ merchantId, userId, otp }) => {
     body: {
       merchantId: merchantId || userId,
       otp,
+    },
+  });
+};
+
+// 2b. Resend OTP API
+export const resendOtpApi = async ({ merchantId, userId }) => {
+  return await apiRequest("https://eventuna.com/api/merchant/resend-otp", {
+    method: "POST",
+    body: {
+      merchantId: merchantId || userId,
     },
   });
 };
@@ -439,8 +445,19 @@ export const deleteProductApi = async ({ productId, id }) => {
   });
 };
 
-export const getMerchantCouponsApi = async () => {
-  return await apiRequest("https://eventuna.com/api/merchant/all-coupons", {
+export const deleteProductCategoryApi = async ({ categoryId, id }) => {
+  return await apiRequest("https://eventuna.com/api/products/category", {
+    method: "DELETE",
+    body: { categoryId: categoryId || id },
+  });
+};
+
+export const getMerchantCouponsApi = async ({ serviceId } = {}) => {
+  let url = "https://eventuna.com/api/merchant/all-coupons";
+  if (serviceId) {
+    url += `?${new URLSearchParams({ serviceId }).toString()}`;
+  }
+  return await apiRequest(url, {
     method: "GET",
   });
 };
@@ -484,14 +501,14 @@ export const addMerchantCouponApi = async (payload) => {
   const defFrom = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
   const defTo = `${String(ninetyDays.getDate()).padStart(2, "0")}-${String(ninetyDays.getMonth() + 1).padStart(2, "0")}-${ninetyDays.getFullYear()}`;
 
+  // Backend Joi schema strictly expects only: serviceId, couponName, discount, validFrom, validTo, description
   const cleanCoupon = {
-    ...payload,
     serviceId: sId,
     couponName: String(payload.couponName || "PROMO").toUpperCase().trim(),
-    discount: String(payload.discount || "10").replace(/[^0-9]/g, "") || "10",
+    discount: Number(String(payload.discount || "10").replace(/[^0-9.]/g, "")) || 10,
     validFrom: formatDateToDDMMYYYY(payload.validFrom, defFrom),
     validTo: formatDateToDDMMYYYY(payload.validTo, defTo),
-    description: (payload.description || "Promotional Discount Voucher").trim(),
+    description: (payload.description || "").trim(),
   };
 
   const queryParams = new URLSearchParams();
@@ -703,6 +720,7 @@ export const authApi = {
   getSubServices: getSubServicesApi,
   signup: signupApi,
   verifyOtp: verifyOtpApi,
+  resendOtp: resendOtpApi,
   login: loginApi,
   logout: logoutApi,
   deleteUser: deleteUserApi,
@@ -728,6 +746,7 @@ export const authApi = {
   addProduct: addProductApi,
   getProductsByCategory: getProductsByCategoryApi,
   deleteProduct: deleteProductApi,
+  deleteProductCategory: deleteProductCategoryApi,
   getMerchantCoupons: getMerchantCouponsApi,
   addMerchantCoupon: addMerchantCouponApi,
   updateMerchantCoupon: updateMerchantCouponApi,

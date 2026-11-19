@@ -32,6 +32,7 @@ function VerificationForm() {
   const otpRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [showIosAlert, setShowIosAlert] = useState(false);
@@ -117,16 +118,35 @@ function VerificationForm() {
     router.push("/account-created");
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
+    const activeUserId = effectiveUserId || userIdFromQuery;
+    if (!activeUserId) {
+      setErrorMsg("User ID missing. Please return to signup and register again.");
+      return;
+    }
+
     setOtp(["", "", "", ""]);
     setErrorMsg("");
-    setSuccessMsg("Verification code has been re-sent to your mobile number.");
-    if (otpRefs[0].current) {
-      otpRefs[0].current.focus();
+    setResending(true);
+
+    try {
+      const res = await authService.resendOtp({ merchantId: activeUserId, userId: activeUserId });
+      if (res?.status) {
+        setSuccessMsg(res.message || "Verification code has been re-sent to your mobile number.");
+        if (otpRefs[0].current) {
+          otpRefs[0].current.focus();
+        }
+        setTimeout(() => {
+          setSuccessMsg("");
+        }, 5000);
+      } else {
+        setErrorMsg(res?.message || "Failed to resend verification code. Please try again.");
+      }
+    } catch (err) {
+      setErrorMsg(err?.message || "Failed to resend code.");
+    } finally {
+      setResending(false);
     }
-    setTimeout(() => {
-      setSuccessMsg("");
-    }, 4000);
   };
 
   return (
@@ -211,8 +231,9 @@ function VerificationForm() {
             type="button"
             className={styles.resendButton}
             onClick={handleResend}
+            disabled={resending || loading}
           >
-            Re-send
+            {resending ? "Re-sending code..." : "Re-send"}
           </button>
         </div>
       </section>

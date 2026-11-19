@@ -17,11 +17,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [unverifiedUserId, setUnverifiedUserId] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
+    setUnverifiedUserId("");
     setLoading(true);
 
     try {
@@ -57,7 +59,11 @@ export default function LoginPage() {
         setSuccessMsg(res.message || "Login successful!");
         router.replace(destination);
       } else {
-        setErrorMsg(res?.message || "Invalid credentials. Please try again.");
+        const msg = res?.message || "Invalid credentials. Please try again.";
+        setErrorMsg(msg);
+        if (res?.userId && msg.toLowerCase().includes("not verified")) {
+          setUnverifiedUserId(res.userId);
+        }
       }
     } catch (err) {
       setErrorMsg("An unexpected error occurred during login.");
@@ -82,6 +88,16 @@ export default function LoginPage() {
                 <div className="alert alert-danger py-2 fs-6 rounded-3 mb-3" role="alert">
                   <i className="fa-solid fa-circle-exclamation me-2"></i>
                   {errorMsg}
+                  {unverifiedUserId && (
+                    <div className="mt-2 pt-2 border-top border-danger-subtle">
+                      <Link
+                        href={`/verification?userId=${encodeURIComponent(unverifiedUserId)}`}
+                        className="btn btn-sm btn-danger text-white w-100 fw-semibold"
+                      >
+                        <i className="fa-solid fa-shield-halved me-1"></i> Verify Account Now
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
 

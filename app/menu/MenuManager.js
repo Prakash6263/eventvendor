@@ -26,6 +26,31 @@ const DEFAULT_DISH_FALLBACK = ("data:image/svg+xml;charset=UTF-8," + encodeURICo
 </svg>
 `)).replace(/'/g, "%27");
 
+const resolveDishImageUrl = (prod) => {
+  if (!prod) return DEFAULT_DISH_FALLBACK;
+  let raw = "";
+  if (Array.isArray(prod.photo) && prod.photo.length > 0) {
+    const item = prod.photo[0];
+    raw = typeof item === "string" ? item : (item?.fileName || item?.url || item?.photoUrl || "");
+  } else if (typeof prod.photo === "string" && prod.photo) {
+    raw = prod.photo;
+  } else if (prod.photoUrl) {
+    raw = prod.photoUrl;
+  } else if (prod.image) {
+    raw = prod.image;
+  }
+
+  if (!raw || typeof raw !== "string") return DEFAULT_DISH_FALLBACK;
+  raw = raw.trim();
+
+  if (raw.startsWith("http://") || raw.startsWith("https://") || raw.startsWith("data:") || raw.startsWith("blob:")) {
+    return raw;
+  }
+
+  const clean = raw.replace(/^\/+/, "");
+  return `https://event-una-image-bucket.s3.amazonaws.com/${clean}`;
+};
+
 export default function MenuManager() {
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
@@ -222,6 +247,36 @@ export default function MenuManager() {
     }
   };
 
+  // 6. Delete Category
+  const handleDeleteCategory = async (catId, catName) => {
+    const result = await Swal.fire({
+      title: "Delete Category?",
+      text: `Are you sure you want to delete category "${catName}" and all its dishes?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Yes, delete",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await authService.deleteProductCategory({ categoryId: catId });
+        if (res?.status) {
+          Swal.fire({ icon: "success", title: "Deleted!", timer: 1200, showConfirmButton: false });
+          if (selectedCategoryId === catId) {
+            setSelectedCategoryId("");
+          }
+          await fetchCategories();
+        } else {
+          Swal.fire({ icon: "error", title: "Error", text: res?.message || "Failed to delete category." });
+        }
+      } catch (err) {
+        Swal.fire({ icon: "error", title: "Error", text: err.message || "Failed to delete category." });
+      }
+    }
+  };
+
   return (
     <div className={styles.container}>
       {/* Page Header */}
@@ -318,7 +373,19 @@ export default function MenuManager() {
         <main className={styles.productsMain}>
           <div className={styles.productsHeader}>
             <div className={styles.activeCategoryDetails}>
-              <h3>{activeCategory?.name || activeCategory?.categoryName || "Select a Category"}</h3>
+              <div className="d-flex align-items-center gap-2">
+                <h3 className="m-0">{activeCategory?.name || activeCategory?.categoryName || "Select a Category"}</h3>
+                {activeCategory?._id && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-danger border-0 p-1 rounded-circle"
+                    onClick={() => handleDeleteCategory(activeCategory._id, activeCategory?.name || activeCategory?.categoryName)}
+                    title="Delete this category"
+                  >
+                    <i className="fa-regular fa-trash-can" />
+                  </button>
+                )}
+              </div>
               <p>{activeCategory?.description || "Browse and manage dishes under this category"}</p>
             </div>
             <div style={{ maxWidth: "240px", width: "100%" }}>
@@ -360,7 +427,7 @@ export default function MenuManager() {
               {filteredProducts.map((prod) => {
                 const id = prod._id || prod.id;
                 const price = Number(prod.price || prod.finalPrice || 0);
-                const imgSrc = prod.photoUrl || prod.photo || prod.image || DEFAULT_DISH_FALLBACK;
+                const imgSrc = resolveDishImageUrl(prod);
 
                 return (
                   <div key={id} className={styles.productCard}>

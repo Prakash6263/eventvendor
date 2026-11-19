@@ -131,12 +131,6 @@ export function initEventsFeature(eventsData = [], path) {
             <div class="dash-welcome-section mb-4 p-4 rounded-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);">
               <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div>
-                  <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
-                    <span class="badge rounded-pill px-2.5 py-1 text-white fw-medium" style="background: rgba(255,255,255,0.15); font-size: 11.5px; backdrop-filter: blur(4px);">
-                      <i class="fa-solid fa-circle-check text-success me-1"></i> Verified Merchant Portal
-                    </span>
-                    <span class="text-white-50" style="font-size: 12px;"><i class="fa-regular fa-calendar me-1"></i>${dateFormatted}</span>
-                  </div>
                   <h3 class="fw-bold text-white mb-1" style="font-family: 'Poppins', sans-serif; letter-spacing: -0.3px;">
                     Welcome back, <span id="dash-vendor-name">${vendorName}</span> 👋
                   </h3>

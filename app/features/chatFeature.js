@@ -6,6 +6,7 @@ export function initChatFeature() {
   const params = new URLSearchParams(window.location.search);
   const eventId = params.get("eventId");
   const userId = params.get("userId");
+  const queryUserName = params.get("userName") || params.get("name") || "";
 
   const chatBody = document.querySelector("#chatBody");
   const chatHeader = document.querySelector(".chat-header");
@@ -83,31 +84,32 @@ export function initChatFeature() {
           chatHeader.insertAdjacentHTML("afterbegin", backBtnHtml);
         }
 
-        if (participants?.user) {
-          const u = participants.user;
-          const pic =
-            u.profilePic && u.profilePic.startsWith("http")
-              ? u.profilePic
-              : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || "User")}&background=5b6ef5&color=fff&size=64`;
+        const u = participants?.user || participants?.customer || res.data?.user || {};
+        const customerName =
+          u.fullName ||
+          u.name ||
+          (u.firstName ? `${u.firstName} ${u.lastName || ""}`.trim() : "") ||
+          u.userName ||
+          queryUserName ||
+          "Customer";
 
-          const avatarImg = chatHeader.querySelector(".avatar-img");
-          const placeholder = chatHeader.querySelector(".avatar-placeholder");
-          if (avatarImg) {
-            avatarImg.src = pic;
-            avatarImg.style.display = "block";
-          }
-          if (placeholder) {
-            placeholder.style.display = "none";
-          }
+        const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(customerName)}&background=eef2ff&color=4f46e5&size=88`;
+        const pic = (u.profilePic && typeof u.profilePic === "string" && u.profilePic.startsWith("http")) ? u.profilePic : defaultAvatar;
 
-          const nameEl = chatHeader.querySelector("#chatCustomerName, h6");
-          if (nameEl) nameEl.textContent = u.fullName || "Customer";
+        const avatarImg = chatHeader.querySelector("#chatCustomerAvatar, .avatar-img");
+        if (avatarImg) {
+          avatarImg.src = pic;
+          avatarImg.alt = customerName;
+          avatarImg.onerror = () => { avatarImg.src = defaultAvatar; };
+        }
 
-          const statusText = chatHeader.querySelector("#chatCustomerStatus, small");
-          if (statusText) statusText.innerHTML = `<i class="bi bi-circle-fill me-1 text-success" style="font-size: 8px;"></i>Online • Customer`;
+        const nameEl = chatHeader.querySelector("#chatCustomerName, h6");
+        if (nameEl) nameEl.textContent = customerName;
 
-          const onlineDot = chatHeader.querySelector(".status-indicator");
-          if (onlineDot) onlineDot.style.display = "inline-block";
+        const statusText = chatHeader.querySelector("#chatCustomerStatus, small");
+        if (statusText) {
+          statusText.innerHTML = `<i class="bi bi-circle-fill me-1" style="font-size: 7px;"></i>Online • Customer`;
+          statusText.className = "text-success fw-semibold d-inline-flex align-items-center";
         }
       }
 

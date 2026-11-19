@@ -251,7 +251,7 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
               <small class="text-muted" style="font-size:12px;">Organizer</small>
             </div>
           </div>
-          <a href="/chat?eventId=${encodeURIComponent(chatEventId)}&userId=${encodeURIComponent(chatUserId)}" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-2" style="background:#5b6ef5; border:none; text-decoration:none;">
+          <a href="/chat?eventId=${encodeURIComponent(chatEventId)}&userId=${encodeURIComponent(chatUserId)}&userName=${encodeURIComponent(organizer.fullName || organizer.name || '')}" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-2" style="background:#5b6ef5; border:none; text-decoration:none;">
             <span>Chat</span> <i class="fa-solid fa-comments"></i>
           </a>
         </div>

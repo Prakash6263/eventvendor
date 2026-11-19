@@ -714,7 +714,7 @@ export function initEventsFeature(eventsData = [], path) {
               <small class="text-muted" style="font-size:12px;">Event Organizer</small>
             </div>
           </div>
-          <a href="/chat?eventId=${event._id || ''}&userId=${organizer._id || ''}" class="btn-modern-primary d-inline-flex align-items-center gap-2" style="font-size:13px; text-decoration:none; padding:7px 16px; border-radius:9999px;">
+          <a href="/chat?eventId=${event._id || ''}&userId=${organizer._id || ''}&userName=${encodeURIComponent(organizer.fullName || organizer.name || '')}" class="btn-modern-primary d-inline-flex align-items-center gap-2" style="font-size:13px; text-decoration:none; padding:7px 16px; border-radius:9999px;">
             <i class="fa-solid fa-comments"></i> Chat
           </a>
         </div>

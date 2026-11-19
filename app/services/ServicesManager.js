@@ -37,6 +37,7 @@ import {
 } from "react-icons/fa6";
 import { authService } from "./authService";
 import LocationMapPicker from "../components/LocationMapPicker";
+import { resolveBranchMediaUrl } from "../utils/formatters";
 import styles from "./ServicesManager.module.css";
 
 const RESTAURANT_SERVICE_ID = "686fb6ced46e9740ee8277ec";
@@ -1987,7 +1988,7 @@ export default function ServicesManager() {
                       {locations.map((loc, i) => {
                         const isCurrent = (loc._id || loc.id) === editingLocId;
                         const mediaItem = Array.isArray(loc.locationPhotoVideoList) && loc.locationPhotoVideoList.length > 0 ? loc.locationPhotoVideoList[0] : null;
-                        const branchPhotoUrl = mediaItem?.url || mediaItem?.file || loc.locationPhoto || loc.photo || loc.image || "";
+                        const branchPhotoUrl = resolveBranchMediaUrl(mediaItem || loc);
                         return (
                           <div
                             key={i}
@@ -2011,7 +2012,15 @@ export default function ServicesManager() {
                                         src={branchPhotoUrl}
                                         alt={loc.addressName}
                                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                        onError={(e) => { e.target.style.display = "none"; }}
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = "none";
+                                          if (e.currentTarget.parentElement) {
+                                            e.currentTarget.parentElement.innerHTML = "🏢";
+                                            e.currentTarget.parentElement.style.display = "grid";
+                                            e.currentTarget.parentElement.style.placeItems = "center";
+                                            e.currentTarget.parentElement.style.fontSize = "16px";
+                                          }
+                                        }}
                                       />
                                     </div>
                                   ) : (

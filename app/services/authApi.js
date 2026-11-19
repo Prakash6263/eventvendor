@@ -390,6 +390,13 @@ export const addMerchantLocationMediaApi = async (payload) => {
   });
 };
 
+export const deleteMerchantLocationMediaApi = async ({ locationId, mediaId }) => {
+  return await apiRequest("https://eventuna.com/api/merchant/delete-location-media", {
+    method: "DELETE",
+    body: { locationId, mediaId },
+  });
+};
+
 export const getProductCategoriesApi = async () => {
   return await apiRequest("https://eventuna.com/api/products/categories", {
     method: "GET",
@@ -741,6 +748,7 @@ export const authApi = {
   updateMerchantLocation: updateMerchantLocationApi,
   getMerchantLocationMedia: getMerchantLocationMediaApi,
   addMerchantLocationMedia: addMerchantLocationMediaApi,
+  deleteMerchantLocationMedia: deleteMerchantLocationMediaApi,
   getProductCategories: getProductCategoriesApi,
   addProductCategory: addProductCategoryApi,
   addProduct: addProductApi,

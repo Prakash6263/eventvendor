@@ -207,6 +207,37 @@ export default function LocationManager() {
     }
   };
 
+  // 6. Delete Gallery Photo
+  const handleDeletePhoto = async (mediaId) => {
+    if (!selectedLocationId || !mediaId) return;
+    const confirm = await Swal.fire({
+      title: "Delete Photo?",
+      text: "Are you sure you want to delete this branch photo?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Yes, delete",
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await authService.deleteMerchantLocationMedia({
+        locationId: selectedLocationId,
+        mediaId,
+      });
+      if (res?.status) {
+        Swal.fire({ icon: "success", title: "Photo Deleted!", timer: 1200, showConfirmButton: false });
+        await fetchGallery(selectedLocationId);
+        await fetchLocations();
+      } else {
+        Swal.fire({ icon: "error", title: "Error", text: res?.message || "Failed to delete photo." });
+      }
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Error", text: err.message || "Failed to delete photo." });
+    }
+  };
+
   return (
     <div className={styles.container}>
       {/* Header */}
@@ -497,50 +528,13 @@ export default function LocationManager() {
                 </div>
               ) : (
                 <div className={styles.galleryGrid}>
-                  {galleryMedia.map((item, idx) => {
-                    const mediaUrl = resolveBranchMediaUrl(item);
-                    const photoDesc = item?.photoDescription || item?.description || item?.title || "Branch Photo";
-                    const isVideo = item?.types === "video" || item?.mediaType === "video" || /\.(mp4|webm|mov)$/i.test(mediaUrl);
-
-                    return (
-                      <div key={item?._id || item?.id || idx} className={styles.galleryItem}>
-                        {isVideo ? (
-                          <video
-                            src={mediaUrl}
-                            controls
-                            className={styles.galleryImg}
-                            poster={BRANCH_DEFAULT_SVG}
-                          />
-                        ) : (
-                          <img
-                            src={mediaUrl || BRANCH_DEFAULT_SVG}
-                            alt={photoDesc}
-                            className={styles.galleryImg}
-                            loading="lazy"
-                            onError={(e) => {
-                              if (!e.currentTarget.dataset.fallbackTried) {
-                                e.currentTarget.dataset.fallbackTried = "true";
-                                const raw = typeof item === "string" ? item : (item?.url || item?.file || item?.media || "");
-                                if (raw && typeof raw === "string" && !raw.startsWith("data:") && !raw.startsWith("blob:")) {
-                                  const clean = raw.replace(/^https?:\/\/[^/]+\//, "").replace(/^\/+/, "");
-                                  if (clean) {
-                                    e.currentTarget.src = `https://eventuna.com/${clean}`;
-                                    return;
-                                  }
-                                }
-                                e.currentTarget.src = BRANCH_DEFAULT_SVG;
-                              } else {
-                                e.currentTarget.src = BRANCH_DEFAULT_SVG;
-                              }
-                            }}
-                          />
-                        )}
-                        {photoDesc && (
-                          <span className={styles.galleryDesc}>{photoDesc}</span>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {galleryMedia.map((item, idx) => (
+                    <BranchMediaCard
+                      key={item?._id || item?.id || idx}
+                      item={item}
+                      onDelete={handleDeletePhoto}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -632,6 +626,84 @@ export default function LocationManager() {
             </form>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function BranchMediaCard({ item, onDelete }) {
+  const mediaUrl = resolveBranchMediaUrl(item);
+  const photoDesc = item?.photoDescription || item?.description || item?.title || "Branch Photo";
+  const isVideo = item?.types === "video" || item?.mediaType === "video" || /\.(mp4|webm|mov)$/i.test(mediaUrl);
+  const mediaId = item?._id || item?.id;
+  const [loadError, setLoadError] = useState(false);
+
+  return (
+    <div className={styles.galleryItem}>
+      {isVideo ? (
+        <video
+          src={mediaUrl}
+          controls
+          className={styles.galleryImg}
+        />
+      ) : loadError ? (
+        <div
+          className="d-flex flex-column align-items-center justify-content-center h-100 text-center p-2"
+          style={{ background: "#f8fafc", color: "#64748b", minHeight: "140px" }}
+        >
+          <i className="fa-regular fa-image fs-3 mb-1" style={{ color: "#94a3b8" }} />
+          <span style={{ fontSize: "11px", fontWeight: "600", maxWidth: "90%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {photoDesc}
+          </span>
+          <span style={{ fontSize: "10px", color: "#ef4444", marginTop: "2px" }}>
+            Photo unavailable
+          </span>
+        </div>
+      ) : (
+        <img
+          src={mediaUrl}
+          alt={photoDesc}
+          className={styles.galleryImg}
+          loading="lazy"
+          onError={() => setLoadError(true)}
+        />
+      )}
+
+      {/* Caption overlay */}
+      {photoDesc && (
+        <span className={styles.galleryDesc}>{photoDesc}</span>
+      )}
+
+      {/* Delete button */}
+      {mediaId && (
+        <button
+          type="button"
+          title="Delete photo"
+          onClick={() => onDelete(mediaId)}
+          style={{
+            position: "absolute",
+            top: "6px",
+            right: "6px",
+            width: "28px",
+            height: "28px",
+            borderRadius: "50%",
+            background: "rgba(239, 68, 68, 0.9)",
+            color: "#ffffff",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "12px",
+            cursor: "pointer",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            zIndex: 2,
+            transition: "transform 0.15s ease",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+        >
+          <i className="fa-solid fa-trash-can" />
+        </button>
       )}
     </div>
   );

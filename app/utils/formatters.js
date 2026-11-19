@@ -284,7 +284,7 @@ export const resolveBranchMediaUrl = (item) => {
 
   // Strip leading slashes
   const cleanPath = raw.replace(/^\/+/, "");
-  return `https://event-una-image-bucket.s3.amazonaws.com/${cleanPath}`;
+  return `https://eventuna.com/api/merchant/locations/${cleanPath}`;
 };
 
 

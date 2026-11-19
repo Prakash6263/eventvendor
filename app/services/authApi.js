@@ -589,10 +589,14 @@ export const getMerchantChatApi = async ({ eventId, userId }) => {
 };
 
 // Send Merchant Chat Message API
-export const sendMerchantMessageApi = async ({ eventId, userId, content }) => {
+export const sendMerchantMessageApi = async ({ eventId, userId, content, chatId }) => {
+  const payload = { content };
+  if (chatId) payload.chatId = chatId;
+  if (eventId) payload.eventId = eventId;
+  if (userId) payload.userId = userId;
   return await apiRequest("https://eventuna.com/api/chat/merchant-chat/send", {
     method: "POST",
-    body: { eventId, userId, content },
+    body: payload,
   });
 };
 

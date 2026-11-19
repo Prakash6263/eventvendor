@@ -29,6 +29,9 @@ export function initChatFeature() {
     return;
   }
 
+  let currentChatId = null;
+  let lastMessagesHash = "";
+
   const buildBubble = (msg, isOutgoing) => {
     const time = msg.timeAgo || new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     const row = document.createElement("div");
@@ -55,42 +58,59 @@ export function initChatFeature() {
         throw new Error(res?.message || "Failed to load chat");
       }
 
+      currentChatId = res.data?._id || res.data?.chatId || res.data?.chat?._id || currentChatId;
       const { participants, messages } = res.data;
 
-      // Update Header with user profile
-      if (chatHeader && participants?.user) {
-        const u = participants.user;
-        const pic =
-          u.profilePic && u.profilePic.startsWith("http")
-            ? u.profilePic
-            : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || "User")}&background=5b6ef5&color=fff&size=64`;
+      // Update Header with user profile and back button
+      if (chatHeader) {
+        if (!chatHeader.querySelector("#chatBackBtn")) {
+          const backBtnHtml = `
+            <a href="/reservation-list" id="chatBackBtn" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 text-secondary me-2" style="font-size: 13px; text-decoration: none;">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Back</span>
+            </a>
+          `;
+          chatHeader.insertAdjacentHTML("afterbegin", backBtnHtml);
+        }
 
-        const avatarImg = chatHeader.querySelector(".user-avatar img");
-        if (avatarImg) avatarImg.src = pic;
+        if (participants?.user) {
+          const u = participants.user;
+          const pic =
+            u.profilePic && u.profilePic.startsWith("http")
+              ? u.profilePic
+              : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || "User")}&background=5b6ef5&color=fff&size=64`;
 
-        const nameEl = chatHeader.querySelector(".user-info h6");
-        if (nameEl) nameEl.textContent = u.fullName || "Customer";
+          const avatarImg = chatHeader.querySelector(".avatar-img, .user-avatar img, img:not(#chatBackBtn img)");
+          if (avatarImg) avatarImg.src = pic;
 
-        const statusText = chatHeader.querySelector(".user-info small");
-        if (statusText) statusText.textContent = "Online";
+          const nameEl = chatHeader.querySelector("h6");
+          if (nameEl) nameEl.textContent = u.fullName || "Customer";
+
+          const statusText = chatHeader.querySelector("small");
+          if (statusText) statusText.innerHTML = `<i class="bi bi-circle-fill me-1 text-success" style="font-size: 8px;"></i>Online • Customer`;
+        }
       }
 
-      // Populate messages
+      // Populate messages only if changed to prevent scroll jumping
       if (chatBody && Array.isArray(messages)) {
-        chatBody.innerHTML = "";
-        if (messages.length === 0) {
-          chatBody.innerHTML = `<div class="text-center text-muted my-auto py-5"><i class="bi bi-chat-heart text-primary mb-2" style="font-size:28px;"></i><br/>Start a conversation with the customer regarding their reservation.</div>`;
-        } else {
-          messages.forEach((msg) => {
-            const isOutgoing = msg.senderRole === "merchant" || msg.senderType === "merchant";
-            chatBody.appendChild(buildBubble(msg, isOutgoing));
-          });
-          chatBody.scrollTop = chatBody.scrollHeight;
+        const messagesHash = JSON.stringify(messages);
+        if (messagesHash !== lastMessagesHash) {
+          lastMessagesHash = messagesHash;
+          chatBody.innerHTML = "";
+          if (messages.length === 0) {
+            chatBody.innerHTML = `<div class="text-center text-muted my-auto py-5"><i class="bi bi-chat-heart text-primary mb-2" style="font-size:28px;"></i><br/>Start a conversation with the customer regarding their reservation.</div>`;
+          } else {
+            messages.forEach((msg) => {
+              const isOutgoing = msg.senderRole === "merchant" || msg.senderType === "merchant";
+              chatBody.appendChild(buildBubble(msg, isOutgoing));
+            });
+            chatBody.scrollTop = chatBody.scrollHeight;
+          }
         }
       }
     } catch (err) {
       console.error("Chat loading failed:", err);
-      if (chatBody) {
+      if (chatBody && !lastMessagesHash) {
         chatBody.innerHTML = `<div class="text-center text-danger py-4">${err.message || "Could not load messages."}</div>`;
       }
     }
@@ -109,13 +129,18 @@ export function initChatFeature() {
       if (sendBtn) sendBtn.disabled = true;
 
       // Optimistic append
-      const tempMsg = { content, createdAt: new Date().toISOString() };
+      const tempMsg = { content, createdAt: new Date().toISOString(), senderRole: "merchant" };
       const bubble = buildBubble(tempMsg, true);
       chatBody.appendChild(bubble);
       chatBody.scrollTop = chatBody.scrollHeight;
 
       try {
-        const res = await authService.sendMerchantMessage({ eventId, userId, content });
+        const res = await authService.sendMerchantMessage({
+          chatId: currentChatId,
+          eventId,
+          userId,
+          content
+        });
         if (!res || !res.status) {
           throw new Error(res?.message || "Failed to send");
         }

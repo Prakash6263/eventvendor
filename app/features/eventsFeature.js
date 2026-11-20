@@ -116,12 +116,19 @@ export function initEventsFeature(eventsData = [], path) {
       const userProfileWrapper = cardParent.closest(".user-profile-wrapper") || cardParent.parentElement;
 
       // 1. Inject or update the Top Executive Overview (Welcome Header, KPI Cards, and Quick Hub)
-      if (userProfileWrapper && !document.getElementById("dash-overview-hub")) {
+      const existingHub = document.getElementById("dash-overview-hub");
+      if (existingHub) {
+        // If an older cached version had the badge or date strip, clean it up immediately
+        existingHub.querySelectorAll(".dash-welcome-section .badge, .dash-welcome-section .fa-calendar, .dash-welcome-section .fa-circle-check").forEach(el => {
+          const pill = el.closest(".d-flex.align-items-center.gap-2.mb-1.5");
+          if (pill) pill.remove();
+        });
+      }
+
+      if (userProfileWrapper && !existingHub) {
         const merchantInfo = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("merchant_info") || "{}") : {};
         const vendorName = merchantInfo?.fullName || merchantInfo?.name || merchantInfo?.merchantName || document.querySelector(".user-profile-sidebar-top h5, .user-profile-sidebar-top h4")?.textContent?.trim() || "Thakus Restaurant";
         
-        const now = new Date();
-        const dateFormatted = now.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
         const pendingCount = (typeof window !== "undefined" && window.__merchantPendingCount != null) ? window.__merchantPendingCount : 0;
         const activeServicesCount = (typeof window !== "undefined" && window.__merchantServicesCount != null) ? window.__merchantServicesCount : 4;
 

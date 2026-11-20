@@ -2013,12 +2013,14 @@ export default function ServicesManager() {
                                         alt={loc.addressName}
                                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                         onError={(e) => {
-                                          e.currentTarget.style.display = "none";
-                                          if (e.currentTarget.parentElement) {
-                                            e.currentTarget.parentElement.innerHTML = "🏢";
-                                            e.currentTarget.parentElement.style.display = "grid";
-                                            e.currentTarget.parentElement.style.placeItems = "center";
-                                            e.currentTarget.parentElement.style.fontSize = "16px";
+                                          const img = e.currentTarget;
+                                          const parent = img?.parentElement;
+                                          if (img) img.style.display = "none";
+                                          if (parent) {
+                                            parent.style.display = "grid";
+                                            parent.style.placeItems = "center";
+                                            parent.style.fontSize = "16px";
+                                            parent.innerHTML = "🏢";
                                           }
                                         }}
                                       />

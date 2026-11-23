@@ -144,8 +144,19 @@ export default function VendorHtmlPage({ markup }) {
 
         if (!["/", "/all-events", "/vendor-event-details"].includes(path)) return;
 
-        const res = await authService.getMerchantAllEvents().catch(() => null);
-        const eventsList = (res && res.status && Array.isArray(res.data)) ? res.data : [];
+        const [res, onlyRes] = await Promise.all([
+          authService.getMerchantAllEvents().catch(() => null),
+          authService.getMerchantOnlyEvents().catch(() => null)
+        ]);
+        const list1 = (res && res.status && Array.isArray(res.data)) ? res.data : [];
+        const list2 = (onlyRes && onlyRes.status && Array.isArray(onlyRes.data)) ? onlyRes.data : [];
+        const eventMap = new Map();
+        [...list1, ...list2].forEach((e) => {
+          if (e && (e._id || e.id)) {
+            eventMap.set(String(e._id || e.id), e);
+          }
+        });
+        const eventsList = Array.from(eventMap.values());
         initEventsFeature(eventsList, path);
       } catch (err) {
         console.error("Failed to load upcoming events:", err);
@@ -183,15 +194,20 @@ export default function VendorHtmlPage({ markup }) {
           }
         }
 
-        const [bookingRequestsRes, reservationsRes, allEventsRes] = await Promise.all([
+        const [bookingRequestsRes, reservationsRes, allEventsRes, onlyEventsRes] = await Promise.all([
           authService.getMerchantBookingRequests().catch(() => null),
           authService.getMerchantEvents().catch(() => null),
-          authService.getMerchantAllEvents().catch(() => null)
+          authService.getMerchantAllEvents().catch(() => null),
+          authService.getMerchantOnlyEvents().catch(() => null)
         ]);
 
         const bookingRequests = Array.isArray(bookingRequestsRes?.data) ? bookingRequestsRes.data : [];
         const reservations = Array.isArray(reservationsRes?.data) ? reservationsRes.data : [];
-        const allEvents = Array.isArray(allEventsRes?.data) ? allEventsRes.data : [];
+        const allEvMap = new Map();
+        [...(Array.isArray(allEventsRes?.data) ? allEventsRes.data : []), ...(Array.isArray(onlyEventsRes?.data) ? onlyEventsRes.data : [])].forEach((e) => {
+          if (e && (e._id || e.id)) allEvMap.set(String(e._id || e.id), e);
+        });
+        const allEvents = Array.from(allEvMap.values());
 
         // Combine unique booking requests and reservations
         const itemMap = new Map();

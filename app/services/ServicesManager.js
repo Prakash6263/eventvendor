@@ -495,6 +495,9 @@ export default function ServicesManager() {
 
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState("");
+  // Multiple Banner Images state
+  const [bannerFiles, setBannerFiles] = useState([]);
+  const [existingBanners, setExistingBanners] = useState([]);
 
   const categorySubTypes = useMemo(() => {
     // Always prefer live API subServices. Only use hardcoded fallback if API returned nothing.
@@ -633,11 +636,12 @@ export default function ServicesManager() {
               onlineReservation: activeSvc.onlineReservation !== undefined ? Boolean(activeSvc.onlineReservation) : prev.onlineReservation,
               serviceSlogan: activeSvc.serviceSlogan || prev.serviceSlogan || "",
             }));
-            if (activeSvc.bannerImage) {
-              setBannerPreview(activeSvc.bannerImage);
-            } else {
-              setBannerPreview(catDefaults.bannerImage);
-            }
+            const rawBanners = Array.isArray(activeSvc.bannerImages) && activeSvc.bannerImages.length > 0
+              ? activeSvc.bannerImages
+              : (activeSvc.bannerImage ? [activeSvc.bannerImage] : (catDefaults.bannerImage ? [catDefaults.bannerImage] : []));
+            setExistingBanners(rawBanners);
+            setBannerPreview(rawBanners[0] || "");
+            setBannerFiles([]);
           }
           return activeSvc;
         });
@@ -866,7 +870,12 @@ export default function ServicesManager() {
       serviceSlogan: finalSlogan,
     });
 
-    setBannerPreview(finalBanner);
+    const targetBanners = Array.isArray(targetService?.bannerImages) && targetService.bannerImages.length > 0
+      ? targetService.bannerImages
+      : (finalBanner ? [finalBanner] : []);
+    setExistingBanners(targetBanners);
+    setBannerPreview(targetBanners[0] || finalBanner || "");
+    setBannerFiles([]);
 
     let initLocations = [];
     if (Array.isArray(targetService?.serviceLocationIds) && targetService.serviceLocationIds.length > 0) {
@@ -1055,13 +1064,25 @@ export default function ServicesManager() {
     });
   };
 
-  // Banner file handler
+  // Banner file handler supporting multiple files
   const handleBannerChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setBannerFile(file);
-      setBannerPreview(URL.createObjectURL(file));
+    const selected = Array.from(e.target.files || []);
+    if (selected.length > 0) {
+      setBannerFiles((prev) => [...prev, ...selected]);
+      if (!bannerPreview && !existingBanners.length) {
+        setBannerPreview(URL.createObjectURL(selected[0]));
+      }
+      setBannerFile(selected[0]);
     }
+    e.target.value = "";
+  };
+
+  const handleRemoveNewBanner = (idx) => {
+    setBannerFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleRemoveExistingBanner = (idx) => {
+    setExistingBanners((prev) => prev.filter((_, i) => i !== idx));
   };
 
   // Branch location photo handler
@@ -1485,8 +1506,21 @@ export default function ServicesManager() {
         }
       }
 
-      if (bannerFile) {
+      // Append multiple banner images if selected
+      if (bannerFiles.length > 0) {
+        bannerFiles.forEach((file) => {
+          formData.append("bannerImages", file);
+        });
+        formData.append("bannerImage", bannerFiles[0]);
+      } else if (existingBanners.length > 0) {
+        formData.append("bannerImage", existingBanners[0]);
+      } else if (bannerFile) {
         formData.append("bannerImage", bannerFile);
+      }
+
+      // Preserve existing banner URLs array in request
+      if (existingBanners.length > 0) {
+        formData.append("bannerImages", JSON.stringify(existingBanners));
       }
 
       const res = await authService.updateMerchantServiceDetail(formData);
@@ -1935,19 +1969,261 @@ export default function ServicesManager() {
                   </div>
 
                   <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-                    <label>Hero Banner Photo / Cover Image</label>
-                    <input type="file" accept="image/*" onChange={handleBannerChange} />
-                    {bannerPreview && (
-                      <div style={{ marginTop: "14px", position: "relative" }}>
-                        <img
-                          src={bannerPreview}
-                          alt="Banner Preview"
-                          style={{ width: "100%", maxHeight: "240px", objectFit: "cover", borderRadius: "14px", border: "1px solid #e2e8f0" }}
-                        />
-                        <span style={{ position: "absolute", top: "12px", right: "12px", background: "rgba(15, 23, 42, 0.75)", color: "#ffffff", padding: "4px 12px", borderRadius: "999px", fontSize: "11px", fontWeight: "600", backdropFilter: "blur(4px)" }}>
-                          Active Cover Banner
-                        </span>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "10px" }}>
+                      <div>
+                        <label style={{ margin: 0, fontWeight: "600", fontSize: "14px" }}>
+                          Hero Banners & Venue Photos (Multiple Supported)
+                        </label>
+                        <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#64748b" }}>
+                          Upload high-resolution photos for hero banners, venue ambience, and food displays. The first image will be used as the primary cover.
+                        </p>
                       </div>
+                      <label
+                        htmlFor="multi-banner-upload"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "8px 16px",
+                          background: "#3b82f6",
+                          color: "#ffffff",
+                          borderRadius: "8px",
+                          fontSize: "13px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                          transition: "background 0.2s"
+                        }}
+                      >
+                        <i className="fa-solid fa-cloud-arrow-up"></i>
+                        <span>+ Upload Photos</span>
+                      </label>
+                      <input
+                        id="multi-banner-upload"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleBannerChange}
+                        style={{ display: "none" }}
+                      />
+                    </div>
+
+                    {/* Banner Gallery Grid */}
+                    {((existingBanners && existingBanners.length > 0) || (bannerFiles && bannerFiles.length > 0) || bannerPreview) ? (
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                          gap: "14px",
+                          marginTop: "14px"
+                        }}
+                      >
+                        {/* Existing Saved Banners */}
+                        {existingBanners.map((bannerUrl, idx) => {
+                          const resolvedSrc = resolveBranchMediaUrl(bannerUrl);
+                          return (
+                            <div
+                              key={`existing-${idx}`}
+                              style={{
+                                position: "relative",
+                                borderRadius: "12px",
+                                overflow: "hidden",
+                                border: idx === 0 ? "2px solid #3b82f6" : "1px solid #e2e8f0",
+                                background: "#f8fafc",
+                                height: "150px"
+                              }}
+                            >
+                              <img
+                                src={resolvedSrc}
+                                alt={`Banner ${idx + 1}`}
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              />
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: "8px",
+                                  left: "8px",
+                                  display: "flex",
+                                  gap: "4px"
+                                }}
+                              >
+                                {idx === 0 && (
+                                  <span
+                                    style={{
+                                      background: "#3b82f6",
+                                      color: "#ffffff",
+                                      padding: "2px 8px",
+                                      borderRadius: "6px",
+                                      fontSize: "10px",
+                                      fontWeight: "700",
+                                      letterSpacing: "0.5px",
+                                      boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                                    }}
+                                  >
+                                    PRIMARY COVER
+                                  </span>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveExistingBanner(idx)}
+                                title="Remove photo"
+                                style={{
+                                  position: "absolute",
+                                  top: "8px",
+                                  right: "8px",
+                                  width: "28px",
+                                  height: "28px",
+                                  borderRadius: "50%",
+                                  background: "rgba(15, 23, 42, 0.75)",
+                                  color: "#ffffff",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "12px",
+                                  transition: "all 0.2s"
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          );
+                        })}
+
+                        {/* New Pending Uploads */}
+                        {bannerFiles.map((file, idx) => {
+                          const previewUrl = URL.createObjectURL(file);
+                          const isFirstOverall = existingBanners.length === 0 && idx === 0;
+                          return (
+                            <div
+                              key={`new-${idx}`}
+                              style={{
+                                position: "relative",
+                                borderRadius: "12px",
+                                overflow: "hidden",
+                                border: isFirstOverall ? "2px solid #10b981" : "1px dashed #3b82f6",
+                                background: "#f8fafc",
+                                height: "150px"
+                              }}
+                            >
+                              <img
+                                src={previewUrl}
+                                alt={`New upload ${idx + 1}`}
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              />
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: "8px",
+                                  left: "8px",
+                                  display: "flex",
+                                  gap: "4px"
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    background: isFirstOverall ? "#10b981" : "rgba(15, 23, 42, 0.75)",
+                                    color: "#ffffff",
+                                    padding: "2px 8px",
+                                    borderRadius: "6px",
+                                    fontSize: "10px",
+                                    fontWeight: "700",
+                                    backdropFilter: "blur(4px)"
+                                  }}
+                                >
+                                  {isFirstOverall ? "PRIMARY COVER (NEW)" : "NEW"}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveNewBanner(idx)}
+                                title="Remove photo"
+                                style={{
+                                  position: "absolute",
+                                  top: "8px",
+                                  right: "8px",
+                                  width: "28px",
+                                  height: "28px",
+                                  borderRadius: "50%",
+                                  background: "rgba(239, 68, 68, 0.85)",
+                                  color: "#ffffff",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "12px",
+                                  transition: "all 0.2s"
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          );
+                        })}
+
+                        {/* Fallback for single banner preview if lists are empty */}
+                        {existingBanners.length === 0 && bannerFiles.length === 0 && bannerPreview && (
+                          <div
+                            style={{
+                              position: "relative",
+                              borderRadius: "12px",
+                              overflow: "hidden",
+                              border: "2px solid #3b82f6",
+                              background: "#f8fafc",
+                              height: "150px"
+                            }}
+                          >
+                            <img
+                              src={bannerPreview}
+                              alt="Banner Preview"
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                            <span
+                              style={{
+                                position: "absolute",
+                                top: "8px",
+                                left: "8px",
+                                background: "#3b82f6",
+                                color: "#ffffff",
+                                padding: "2px 8px",
+                                borderRadius: "6px",
+                                fontSize: "10px",
+                                fontWeight: "700"
+                              }}
+                            >
+                              PRIMARY COVER
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <label
+                        htmlFor="multi-banner-upload"
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "36px 20px",
+                          marginTop: "12px",
+                          borderRadius: "14px",
+                          border: "2px dashed #cbd5e1",
+                          background: "#f8fafc",
+                          cursor: "pointer",
+                          transition: "border-color 0.2s"
+                        }}
+                      >
+                        <i className="fa-regular fa-images" style={{ fontSize: "36px", color: "#94a3b8", marginBottom: "10px" }}></i>
+                        <span style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>
+                          Click to select photos or drag and drop
+                        </span>
+                        <span style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>
+                          PNG, JPG, WEBP up to 10MB each (multiple allowed)
+                        </span>
+                      </label>
                     )}
                   </div>
                 </div>

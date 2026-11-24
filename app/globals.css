@@ -697,3 +697,70 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ── Global Interactive & Button Hover Protection ── */
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+a.btn-primary,
+a.btn-primary:hover,
+a.btn-primary:focus,
+a.btn-primary:active,
+button.btn-primary,
+button.btn-primary:hover,
+button.btn-primary:focus,
+button.btn-primary:active,
+.btn-hover:hover,
+a.btn-hover:hover,
+.main-btn:hover,
+a.main-btn:hover {
+  color: #ffffff !important;
+}
+
+.btn.text-white:hover,
+.btn.text-white:focus,
+a.btn.text-white:hover,
+a.btn.text-white:focus,
+.btn[style*="background"]:hover,
+a.btn[style*="background"]:hover,
+.btn[style*="background"]:hover *,
+a.btn[style*="background"]:hover * {
+  color: #ffffff !important;
+}
+
+.btn-secondary:hover,
+a.btn-secondary:hover,
+.btn-success:hover,
+a.btn-success:hover,
+.btn-danger:hover,
+a.btn-danger:hover,
+.btn-dark:hover,
+a.btn-dark:hover,
+.btn-info:hover,
+a.btn-info:hover {
+  color: #ffffff !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+a.btn-outline-primary:hover,
+a.btn-outline-primary:focus,
+a.btn-outline-primary:active,
+button.btn-outline-primary:hover,
+button.btn-outline-primary:focus {
+  color: #ffffff !important;
+  background-color: #3e56f0 !important;
+  border-color: #3e56f0 !important;
+}
+
+.btn-outline-primary:hover *,
+a.btn-outline-primary:hover * {
+  color: #ffffff !important;
+}
+
+a.btn {
+  text-decoration: none !important;
+}
+

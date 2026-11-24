@@ -2014,13 +2014,14 @@ export default function ServicesManager() {
                                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                         onError={(e) => {
                                           const img = e.currentTarget;
-                                          const parent = img?.parentElement;
-                                          if (img) img.style.display = "none";
+                                          if (!img) return;
+                                          img.style.display = "none";
+                                          const parent = img.parentElement;
                                           if (parent) {
                                             parent.style.display = "grid";
                                             parent.style.placeItems = "center";
                                             parent.style.fontSize = "16px";
-                                            parent.innerHTML = "🏢";
+                                            parent.textContent = "🏢";
                                           }
                                         }}
                                       />

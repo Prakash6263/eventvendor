@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { authService } from "../services/authService";
+import { countryCodes } from "../utils/countryCodes";
 import styles from "./signup.module.css";
 
 export default function SignupPage() {
@@ -61,11 +62,13 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
+      const cleanCountryCode = form.countryCode.startsWith("+") ? form.countryCode : `+${form.countryCode}`;
+      const cleanDigits = form.mobile.trim().replace(/^0+/, "");
       const payload = {
         fullName: form.fullName.trim(),
         email: form.email.trim(),
-        mobile: form.mobile.trim(),
-        countryCode: form.countryCode.trim() || "+966",
+        mobile: cleanDigits,
+        countryCode: cleanCountryCode || "+966",
         password: form.password,
         ios_register_id: "IOS123",
       };
@@ -169,10 +172,31 @@ export default function SignupPage() {
             {/* 3. Phone Number with Country Code */}
             <div className={styles.inputGroup}>
               <span className={styles.inputIcon}>
-                <i className="fa-regular fa-envelope" />
+                <i className="fa-solid fa-phone" />
               </span>
               <div className={styles.phoneGroup}>
-                <span className={styles.phonePrefix}>{form.countryCode}</span>
+                <select
+                  className={styles.phoneSelect}
+                  value={form.countryCode}
+                  onChange={(e) => updateField("countryCode", e.target.value)}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    fontWeight: "700",
+                    color: "#111827",
+                    fontSize: "14px",
+                    outline: "none",
+                    cursor: "pointer",
+                    paddingRight: "6px"
+                  }}
+                  aria-label="Country Code"
+                >
+                  {countryCodes.map((c, i) => (
+                    <option key={`${c.code}-${c.iso || i}`} value={c.code}>
+                      {c.flag} {c.code}
+                    </option>
+                  ))}
+                </select>
                 <input
                   className={styles.inputField}
                   type="tel"

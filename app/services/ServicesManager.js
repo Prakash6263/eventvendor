@@ -1348,8 +1348,13 @@ export default function ServicesManager() {
 
   // Add Coupon (iOS AddCouponVC)
   const handleAddCoupon = async () => {
-    if (!newCoupon.couponName.trim() || !newCoupon.discount.trim()) {
+    if (!newCoupon.couponName.trim() || !newCoupon.discount.toString().trim()) {
       Swal.fire("Missing Info", "Please enter coupon code and discount percentage.", "warning");
+      return;
+    }
+    const discountVal = parseFloat(newCoupon.discount);
+    if (!Number.isFinite(discountVal) || discountVal < 1 || discountVal > 99) {
+      Swal.fire("Invalid Discount", "Discount percentage must be between 1% and 99%.", "warning");
       return;
     }
     try {
@@ -1357,7 +1362,7 @@ export default function ServicesManager() {
       const res = await authService.addMerchantCoupon({
         serviceId: form.serviceId,
         couponName: newCoupon.couponName.toUpperCase().trim(),
-        discount: newCoupon.discount.trim(),
+        discount: String(discountVal),
         validFrom: newCoupon.validFrom || new Date().toISOString().split("T")[0],
         validTo: newCoupon.validTo || "",
         description: newCoupon.description.trim() || "Promotional Discount Voucher",
@@ -2863,7 +2868,9 @@ export default function ServicesManager() {
                         <label>Price (SAR / Currency) *</label>
                         <input
                           type="number"
-                          placeholder="e.g. 45"
+                          step="0.01"
+                          min="0"
+                          placeholder="e.g. 45.00"
                           value={newDish.price}
                           onChange={(e) => setNewDish({ ...newDish, price: e.target.value })}
                         />
@@ -2988,12 +2995,13 @@ export default function ServicesManager() {
                         />
                       </div>
                       <div className={styles.formGroup}>
-                        <label>Discount Percentage (%) *</label>
+                        <label>Discount Percentage (%) * (1-99%)</label>
                         <input
                           type="number"
                           min="1"
-                          max="100"
-                          placeholder="e.g. 20"
+                          max="99"
+                          step="any"
+                          placeholder="e.g. 5 or 20"
                           value={newCoupon.discount}
                           onChange={(e) => setNewCoupon({ ...newCoupon, discount: e.target.value })}
                         />

@@ -145,8 +145,13 @@ export default function CouponManager() {
       Swal.fire("Validation Error", "Please provide a coupon code (e.g. SUMMER25)", "warning");
       return;
     }
-    if (!formData.discount.trim()) {
+    if (!formData.discount.toString().trim()) {
       Swal.fire("Validation Error", "Please provide a discount value or percentage", "warning");
+      return;
+    }
+    const discNum = parseFloat(String(formData.discount).replace(/[^0-9.]/g, ""));
+    if (isNaN(discNum) || discNum < 1 || discNum > 99) {
+      Swal.fire("Validation Error", "Discount percentage must be between 1% and 99%", "warning");
       return;
     }
 
@@ -393,10 +398,10 @@ export default function CouponManager() {
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label>Discount Value *</label>
+                    <label>Discount Value (% or Amount) * (1-99%)</label>
                     <input
                       type="text"
-                      placeholder="e.g. 20% or 50"
+                      placeholder="e.g. 5% or 20%"
                       value={formData.discount}
                       onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
                       required

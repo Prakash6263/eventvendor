@@ -798,8 +798,8 @@ export default function VendorProfileForm({ profile, onUpdate }) {
       return;
     }
     const discount = Number(couponForm.discount);
-    if (!Number.isFinite(discount) || discount < 0 || discount > 100) {
-      setError("Discount must be between 0 and 100.");
+    if (!Number.isFinite(discount) || discount < 1 || discount > 99) {
+      setError("Discount percentage must be between 1% and 99%.");
       return;
     }
     setActionLoading("coupon");
@@ -1703,15 +1703,15 @@ export default function VendorProfileForm({ profile, onUpdate }) {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fw-semibold small text-muted">Discount %</label>
+                  <label className="form-label fw-semibold small text-muted">Discount % (1-99%)</label>
                   <input
                     type="number"
-                    min="0"
-                    max="100"
+                    min="1"
+                    max="99"
                     className="form-control"
                     value={couponForm.discount}
                     onChange={(e) => updateCouponField("discount", e.target.value)}
-                    placeholder="20"
+                    placeholder="e.g. 5 or 20"
                   />
                 </div>
                 <div className="col-md-6">

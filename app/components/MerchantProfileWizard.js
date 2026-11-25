@@ -1174,8 +1174,8 @@ export default function MerchantProfileWizard() {
       return;
     }
     const discount = Number(couponForm.discount);
-    if (!Number.isFinite(discount) || discount < 0 || discount > 100) {
-      setError("Discount must be between 0 and 100.");
+    if (!Number.isFinite(discount) || discount < 1 || discount > 99) {
+      setError("Discount percentage must be between 1% and 99%.");
       return;
     }
 

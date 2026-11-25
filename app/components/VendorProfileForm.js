@@ -1388,7 +1388,7 @@ export default function VendorProfileForm({ profile, onUpdate }) {
                   <i className="fa-solid fa-plus me-2" />Add Location
                 </button>
                 <button type="button" className="btn btn-primary flex-grow-1" onClick={() => { setActiveStep((p) => p + 1); setError(""); setMessage(""); }}>
-                  Continue & Next
+                  Continue
                 </button>
               </div>
             </>
@@ -1609,7 +1609,7 @@ export default function VendorProfileForm({ profile, onUpdate }) {
                   <i className="fa-solid fa-plus me-2" />Add Category
                 </button>
                 <button type="button" className="btn btn-primary flex-grow-1" onClick={() => { setActiveStep((p) => p + 1); setError(""); setMessage(""); }}>
-                  Continue & Next
+                  Continue
                 </button>
               </div>
             </>
@@ -1684,7 +1684,7 @@ export default function VendorProfileForm({ profile, onUpdate }) {
                   <i className="fa-solid fa-plus me-2" />Add Coupon
                 </button>
                 <button type="button" className="btn btn-primary flex-grow-1" onClick={() => { setActiveStep((p) => p + 1); setError(""); setMessage(""); }}>
-                  Continue & Next
+                  Continue
                 </button>
               </div>
             </>

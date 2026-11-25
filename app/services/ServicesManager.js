@@ -3124,7 +3124,7 @@ export default function ServicesManager() {
 
             {activeStep < STEPS.length - 1 ? (
               <button className={styles.primaryBtn} onClick={() => setActiveStep((prev) => prev + 1)}>
-                <span>Continue & Next Step</span>
+                <span>Continue</span>
                 <FaArrowRight size={13} />
               </button>
             ) : (

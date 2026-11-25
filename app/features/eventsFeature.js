@@ -616,7 +616,7 @@ export function initEventsFeature(eventsData = [], path) {
             <h5 class="fw-bold text-dark mb-1">Event Not Found</h5>
             <p class="text-muted small mb-4">We could not find an event with the requested ID. It may have been removed or does not exist.</p>
             <a href="/all-events" class="btn btn-primary rounded-pill px-4 fw-semibold btn-sm">
-              <i class="fa-solid fa-arrow-left me-1"></i> Back to All Events
+              <i class="fa-solid fa-arrow-left me-1"></i> Back to Events
             </a>
           </div>
         `;

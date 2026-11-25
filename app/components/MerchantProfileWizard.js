@@ -1982,7 +1982,7 @@ export default function MerchantProfileWizard() {
               className={styles.primaryButton}
               onClick={handleContinue}
             >
-              <span>Continue to Documents</span>
+              <span>Next: Documents</span>
               <i className="fa-solid fa-arrow-right" />
             </button>
           ) : (

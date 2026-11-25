@@ -1,6 +1,8 @@
 import { getToken, getUser, saveAuthData, clearAuthData, isLoggedIn } from "./apiClient";
 import {
   authApi,
+  requestDeactivationApi,
+  requestReactivationApi,
   getMerchantAllEventsApi,
   getMerchantOnlyEventsApi,
   getMerchantEventsApi,
@@ -166,6 +168,8 @@ export const authService = {
   deleteMerchantCoupon: deleteMerchantCouponApi,
   getPendingCancelledEvents: getPendingCancelledEventsApi,
   rateMerchant: rateMerchantApi,
+  requestDeactivation: requestDeactivationApi,
+  requestReactivation: requestReactivationApi,
   getAddresses: getAddressesApi,
   addAddress: addAddressApi,
 };

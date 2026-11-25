@@ -712,7 +712,25 @@ export const rateMerchantApi = async ({ merchantId, rating, comment }) => {
   });
 };
 
+// Request Account Deactivation API
+export const requestDeactivationApi = async (reason) => {
+  return await apiRequest("https://eventuna.com/api/merchant/request-deactivation", {
+    method: "POST",
+    body: { reason },
+  });
+};
+
+// Request Account Reactivation API
+export const requestReactivationApi = async (reason) => {
+  return await apiRequest("https://eventuna.com/api/merchant/request-reactivation", {
+    method: "POST",
+    body: { reason },
+  });
+};
+
 export const authApi = {
+  requestDeactivation: requestDeactivationApi,
+  requestReactivation: requestReactivationApi,
   getMerchantAllEvents: getMerchantAllEventsApi,
   getMerchantOnlyEvents: getMerchantOnlyEventsApi,
   getMerchantEvents: getMerchantEventsApi,

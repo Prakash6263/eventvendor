@@ -116,6 +116,63 @@ export function initProfileFeature({ rootEl, reactRootRef, onProfileUpdate }) {
 
     deleteItem.appendChild(deleteAccountButton);
     sidebarList.appendChild(deleteItem);
+
+    // Deactivate / Pause Account Request Button
+    const deactItem = document.createElement("li");
+    deactItem.className = "sidebar-deactivate-account-item mt-2";
+    const deactButton = document.createElement("button");
+    deactButton.className = "btn btn-outline-warning sidebar-deactivate-btn w-100 rounded-pill py-2 fw-semibold";
+    deactButton.type = "button";
+    deactButton.innerHTML = `<i class="fa-solid fa-pause me-2"></i> Pause Operations`;
+
+    deactButton.addEventListener("click", () => {
+      Swal.fire({
+        title: "Pause / Deactivate Account",
+        text: "Temporarily pause your vendor business operations. Please provide a reason:",
+        input: "textarea",
+        inputPlaceholder: "Reason for pausing operations...",
+        showCancelButton: true,
+        confirmButtonColor: "#f59e0b",
+        cancelButtonColor: "#64748b",
+        confirmButtonText: "Submit Request",
+        inputValidator: (value) => {
+          if (!value || !value.trim()) {
+            return "Please provide a reason for pausing your account.";
+          }
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const res = await authService.requestDeactivation(result.value.trim());
+            if (res?.status) {
+              Swal.fire({
+                title: "Request Submitted!",
+                text: res.message || "Your deactivation request has been sent to administration.",
+                icon: "success",
+                confirmButtonColor: "#5b6ef5"
+              });
+            } else {
+              Swal.fire({
+                title: "Request Failed",
+                text: res?.message || "Could not submit deactivation request.",
+                icon: "error",
+                confirmButtonColor: "#5b6ef5"
+              });
+            }
+          } catch (err) {
+            Swal.fire({
+              title: "Error!",
+              text: err.message || "Network error submitting request.",
+              icon: "error",
+              confirmButtonColor: "#5b6ef5"
+            });
+          }
+        }
+      });
+    });
+
+    deactItem.appendChild(deactButton);
+    sidebarList.appendChild(deactItem);
   }
 
   const applyProfile = (profile) => {

@@ -187,13 +187,15 @@ export default function SignupPage() {
                     fontSize: "14px",
                     outline: "none",
                     cursor: "pointer",
-                    paddingRight: "6px"
+                    paddingRight: "6px",
+                    maxWidth: "110px",
+                    textOverflow: "ellipsis"
                   }}
                   aria-label="Country Code"
                 >
                   {countryCodes.map((c, i) => (
                     <option key={`${c.code}-${c.iso || i}`} value={c.code}>
-                      {c.flag} {c.code}
+                      {c.flag} {c.country} ({c.code})
                     </option>
                   ))}
                 </select>

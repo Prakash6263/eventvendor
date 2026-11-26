@@ -66,6 +66,7 @@ export default function MenuManager() {
 
   // Dish Modal
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
+  const [editingDishId, setEditingDishId] = useState(null);
   const [dishForm, setDishForm] = useState({ name: "", price: "", description: "" });
   const [dishPhoto, setDishPhoto] = useState(null);
   const [dishPreviewUrl, setDishPreviewUrl] = useState("");
@@ -193,31 +194,60 @@ export default function MenuManager() {
     try {
       setSavingDish(true);
       const formData = new FormData();
-      formData.append("categoryId", selectedCategoryId);
       formData.append("name", dishForm.name.trim());
       formData.append("price", String(dishForm.price).trim());
       formData.append("description", dishForm.description.trim());
-      if (dishPhoto) {
-        formData.append("photo", dishPhoto);
-        formData.append("image", dishPhoto);
+
+      let res;
+      if (editingDishId) {
+        formData.append("productId", editingDishId);
+        if (dishPhoto) {
+          formData.append("photos", dishPhoto);
+        }
+        res = await authService.updateProduct(formData);
+      } else {
+        formData.append("categoryId", selectedCategoryId);
+        if (dishPhoto) {
+          formData.append("photo", dishPhoto);
+          formData.append("image", dishPhoto);
+        }
+        res = await authService.addProduct(formData);
       }
 
-      const res = await authService.addProduct(formData);
       if (res?.status) {
-        Swal.fire({ icon: "success", title: "Dish Added!", timer: 1500, showConfirmButton: false });
+        Swal.fire({
+          icon: "success",
+          title: editingDishId ? "Dish Updated!" : "Dish Added!",
+          timer: 1500,
+          showConfirmButton: false,
+        });
         setIsDishModalOpen(false);
+        setEditingDishId(null);
         setDishForm({ name: "", price: "", description: "" });
         setDishPhoto(null);
         setDishPreviewUrl("");
         await fetchProducts(selectedCategoryId);
       } else {
-        Swal.fire({ icon: "error", title: "Error", text: res?.message || "Failed to add dish." });
+        Swal.fire({ icon: "error", title: "Error", text: res?.message || "Failed to save dish." });
       }
     } catch (err) {
-      Swal.fire({ icon: "error", title: "Error", text: err.message || "Failed to add dish." });
+      Swal.fire({ icon: "error", title: "Error", text: err.message || "Failed to save dish." });
     } finally {
       setSavingDish(false);
     }
+  };
+
+  const handleOpenEditDish = (prod) => {
+    const id = prod._id || prod.id;
+    setEditingDishId(id);
+    setDishForm({
+      name: prod.name || prod.productName || "",
+      price: String(prod.price ?? prod.finalPrice ?? ""),
+      description: prod.description || "",
+    });
+    setDishPhoto(null);
+    setDishPreviewUrl(resolveDishImageUrl(prod));
+    setIsDishModalOpen(true);
   };
 
   // 5. Delete Dish
@@ -450,14 +480,24 @@ export default function MenuManager() {
                         <span className={styles.dishBadge}>
                           <i className="fa-solid fa-circle-check me-1" /> Available
                         </span>
-                        <button
-                          type="button"
-                          className={styles.deleteDishBtn}
-                          onClick={() => handleDeleteDish(id, prod.name)}
-                          title="Delete Dish"
-                        >
-                          <i className="fa-regular fa-trash-can" />
-                        </button>
+                        <div className="d-flex align-items-center gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-light border"
+                            onClick={() => handleOpenEditDish(prod)}
+                            title="Edit Dish"
+                          >
+                            <i className="fa-solid fa-pen-to-square" />
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.deleteDishBtn}
+                            onClick={() => handleDeleteDish(id, prod.name)}
+                            title="Delete Dish"
+                          >
+                            <i className="fa-regular fa-trash-can" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -525,16 +565,16 @@ export default function MenuManager() {
         </div>
       )}
 
-      {/* ── Modal: Add Dish ── */}
+      {/* ── Modal: Add / Edit Dish ── */}
       {isDishModalOpen && (
-        <div className={styles.modalBackdrop} onClick={() => setIsDishModalOpen(false)}>
+        <div className={styles.modalBackdrop} onClick={() => { setIsDishModalOpen(false); setEditingDishId(null); }}>
           <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>Add Dish to {activeCategory?.name || "Menu"}</h3>
+              <h3>{editingDishId ? "Edit Dish" : `Add Dish to ${activeCategory?.name || "Menu"}`}</h3>
               <button
                 type="button"
                 className={styles.modalCloseBtn}
-                onClick={() => setIsDishModalOpen(false)}
+                onClick={() => { setIsDishModalOpen(false); setEditingDishId(null); }}
               >
                 <i className="fa-solid fa-xmark" />
               </button>
@@ -605,7 +645,7 @@ export default function MenuManager() {
                 <button
                   type="button"
                   className={styles.secondaryBtn}
-                  onClick={() => setIsDishModalOpen(false)}
+                  onClick={() => { setIsDishModalOpen(false); setEditingDishId(null); }}
                 >
                   Cancel
                 </button>
@@ -614,7 +654,7 @@ export default function MenuManager() {
                   className={styles.primaryBtn}
                   disabled={savingDish}
                 >
-                  {savingDish ? "Adding Dish..." : "Save Dish"}
+                  {savingDish ? "Saving..." : editingDishId ? "Update Dish" : "Save Dish"}
                 </button>
               </div>
             </form>

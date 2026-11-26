@@ -452,6 +452,21 @@ export const deleteProductApi = async ({ productId, id }) => {
   });
 };
 
+export const updateProductApi = async (payload) => {
+  let body = payload;
+  if (!(payload instanceof FormData)) {
+    const fd = new FormData();
+    Object.entries(payload || {}).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) fd.append(k, v);
+    });
+    body = fd;
+  }
+  return await apiRequest("https://eventuna.com/api/products/updateproduct", {
+    method: "POST",
+    body,
+  });
+};
+
 export const deleteProductCategoryApi = async ({ categoryId, id }) => {
   return await apiRequest("https://eventuna.com/api/products/category", {
     method: "DELETE",
@@ -770,6 +785,7 @@ export const authApi = {
   getProductCategories: getProductCategoriesApi,
   addProductCategory: addProductCategoryApi,
   addProduct: addProductApi,
+  updateProduct: updateProductApi,
   getProductsByCategory: getProductsByCategoryApi,
   deleteProduct: deleteProductApi,
   deleteProductCategory: deleteProductCategoryApi,

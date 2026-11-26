@@ -154,6 +154,11 @@ export default function CouponManager() {
       Swal.fire("Validation Error", "Discount percentage must be between 1% and 99%", "warning");
       return;
     }
+    const effectiveFrom = formData.validFrom || new Date().toISOString().split("T")[0];
+    if (formData.validTo && formData.validTo < effectiveFrom) {
+      Swal.fire("Validation Error", "Expiry date (Valid To) cannot be earlier than start date (Valid From).", "warning");
+      return;
+    }
 
     try {
       setSubmitting(true);

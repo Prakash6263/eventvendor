@@ -145,11 +145,17 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
     const resDateInfo = formatEventDate(event.eventDate || item.date || item.createdAt, event.eventStartTime, event.eventEndTime);
     const normalizedStatus = String(item.status || "").toLowerCase().trim();
 
+    const isTableReservation = !item.additionalServiceId && !item.finalAmount && item.type !== "booking";
     const isPaymentDone = Boolean(
       ["done", "completed", "paid", "yes", "success", "confirmed"].includes(String(item.paymentStatus || "").toLowerCase()) ||
       ["done", "completed", "confirmed"].includes(normalizedStatus) ||
       item.invoiceLink
     );
+    const paymentLabel = isPaymentDone
+      ? "Payment Status: Done"
+      : isTableReservation && normalizedStatus === "active"
+      ? "Reservation Confirmed (Pay at Venue)"
+      : "Payment Status: Pending";
     const qrCodeSrc = item.eventAttendanceQr || event.eventAttendanceQr || item.attendanceQrToken || "";
     const eventTitle = event.eventTitle || item.eventTitle || item.title || "Booking Detail";
     const serviceName = item.additionalServiceId?.servicesName || item.serviceName || item.serviceTitle || "Service";
@@ -282,8 +288,8 @@ export function initReservationsFeature({ data = [], allEvents = [], path, route
 
       <!-- Payment Status -->
       <div class="text-center py-3 my-2">
-        <span class="fw-bold fs-6" style="color: ${isPaymentDone ? '#16a34a' : '#d97706'};">
-          Payment Status: ${isPaymentDone ? 'Done' : 'Pending'}
+        <span class="fw-bold fs-6" style="color: ${isPaymentDone || (isTableReservation && normalizedStatus === "active") ? '#16a34a' : '#d97706'};">
+          ${paymentLabel}
         </span>
       </div>
 

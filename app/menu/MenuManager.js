@@ -186,8 +186,10 @@ export default function MenuManager() {
       Swal.fire({ icon: "warning", title: "Required", text: "Please enter dish name." });
       return;
     }
-    if (!dishForm.price || isNaN(Number(dishForm.price))) {
-      Swal.fire({ icon: "warning", title: "Required", text: "Please enter a valid price." });
+    const rawPrice = String(dishForm.price ?? "").trim();
+    const numPrice = Number(rawPrice);
+    if (!rawPrice || isNaN(numPrice) || numPrice <= 0 || !/^\d+(\.\d{1,2})?$/.test(rawPrice)) {
+      Swal.fire({ icon: "warning", title: "Invalid Price", text: "Please enter a valid price greater than 0 with up to 2 decimal places (e.g. 24.50)." });
       return;
     }
 
@@ -620,13 +622,17 @@ export default function MenuManager() {
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Price ($ / SAR) *</label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     className={styles.formInput}
                     placeholder="e.g. 24.50"
                     value={dishForm.price}
-                    onChange={(e) => setDishForm((d) => ({ ...d, price: e.target.value }))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "" || /^\d*(\.\d{0,2})?$/.test(val)) {
+                        setDishForm((d) => ({ ...d, price: val }));
+                      }
+                    }}
                   />
                 </div>
 

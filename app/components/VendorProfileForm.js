@@ -5,6 +5,24 @@ import { authService } from "../services/authService";
 import Swal from "sweetalert2";
 import LocationMapPicker from "./LocationMapPicker";
 import styles from "./MerchantProfileWizard.module.css";
+import { countryCodes } from "../utils/countryCodes";
+
+const SORTED_COUNTRY_CODES = [...countryCodes].sort((a, b) => b.code.length - a.code.length);
+
+const splitPhoneWithCode = (raw, defaultCode = "+966") => {
+  const str = String(raw || "").trim();
+  if (!str) return { code: defaultCode, number: "" };
+  const matched = SORTED_COUNTRY_CODES.find((c) => str.startsWith(c.code));
+  if (matched) {
+    return { code: matched.code, number: str.slice(matched.code.length).replace(/\D/g, "") };
+  }
+  return { code: defaultCode, number: str.replace(/\D/g, "") };
+};
+
+const combinePhoneWithCode = (code, number) => {
+  const digits = String(number || "").replace(/\D/g, "");
+  return digits ? `${code || "+966"}${digits}` : "";
+};
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const getId = (value) => (typeof value === "string" ? value : value?._id || "");
@@ -123,6 +141,8 @@ function BannerUploadField({ file, existingUrl, onChange }) {
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function VendorProfileForm({ profile, onUpdate }) {
   const [activeStep, setActiveStep] = useState(0);
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+966");
+  const [locationPhoneCountryCode, setLocationPhoneCountryCode] = useState("+966");
 
   // Core Form State
   const [form, setForm] = useState({
@@ -252,6 +272,8 @@ export default function VendorProfileForm({ profile, onUpdate }) {
   // ── Pre-fill core profile data ──────────────────────────────────────────────
   useEffect(() => {
     if (!profile) return;
+    const parsedBizPhone = splitPhoneWithCode(profile.phone || "", profile.countryCode || "+966");
+    setPhoneCountryCode(parsedBizPhone.code);
     setForm({
       serviceSubcategoryIds: Array.isArray(profile.serviceSubcategoryIds)
         ? profile.serviceSubcategoryIds.map(getId)
@@ -261,7 +283,7 @@ export default function VendorProfileForm({ profile, onUpdate }) {
       webUrl: profile.webUrl || "",
       cuisineName: profile.cuisineName || "",
       menuUrl: profile.menuUrl || "",
-      phone: profile.phone || "",
+      phone: parsedBizPhone.number,
       onlineReservation: Boolean(profile.onlineReservation),
       commercialPermitNumber: profile.commercialPermitNumber || "",
       vatNumber: profile.vatNumber || "",
@@ -353,7 +375,7 @@ export default function VendorProfileForm({ profile, onUpdate }) {
     fd.append("webUrl", form.webUrl.trim());
     fd.append("cuisineName", form.cuisineName.trim());
     fd.append("menuUrl", form.menuUrl.trim());
-    fd.append("phone", form.phone.trim());
+    fd.append("phone", combinePhoneWithCode(phoneCountryCode, form.phone));
     fd.append("onlineReservation", String(form.onlineReservation));
     fd.append("commercialPermitNumber", form.commercialPermitNumber.trim());
     fd.append("vatNumber", form.vatNumber.trim());
@@ -468,6 +490,8 @@ export default function VendorProfileForm({ profile, onUpdate }) {
         || Boolean(String(detail.locationPhone || "").trim());
       const hoursCompleted = Array.isArray(detail.weeklySchedule) && detail.weeklySchedule.length > 0;
 
+      const parsedLocPhone = splitPhoneWithCode(detail.locationPhone || "", phoneCountryCode || "+966");
+      setLocationPhoneCountryCode(parsedLocPhone.code);
       setSelectedLocationId(locId);
       setLocationForm({
         addressName: detail.addressName || "",
@@ -476,7 +500,7 @@ export default function VendorProfileForm({ profile, onUpdate }) {
         long: detail.long ?? "",
         capacity: detail.capacity ?? "",
         floorPlan: detail.floorPlan || "",
-        locationPhone: detail.locationPhone || "",
+        locationPhone: parsedLocPhone.number,
         openTwoShifts: Boolean(detail.openTwoShifts),
       });
 
@@ -642,11 +666,12 @@ export default function VendorProfileForm({ profile, onUpdate }) {
     }
     setActionLoading("location-details");
     try {
+      const combinedLocPhone = combinePhoneWithCode(locationPhoneCountryCode, locationForm.locationPhone);
       const payload = {
         floorPlan: String(locationForm.floorPlan || ""),
         capacity: String(locationForm.capacity ?? ""),
         weeklySchedule: [],
-        locationPhone: String(locationForm.locationPhone || ""),
+        locationPhone: combinedLocPhone,
         locationId: String(locId),
       };
       const response = await authService.updateMerchantLocation(payload);
@@ -654,7 +679,7 @@ export default function VendorProfileForm({ profile, onUpdate }) {
         setError(response?.message || "Unable to update location details.");
       } else {
         setLocations((current) => current.map((loc) => (
-          getId(loc) === locId ? { ...loc, ...locationForm, _id: locId } : loc
+          getId(loc) === locId ? { ...loc, ...locationForm, locationPhone: combinedLocPhone, _id: locId } : loc
         )));
         setMessage(response.message || "Location details updated successfully.");
         setLocationSectionsCompleted((current) => ({ ...current, details: true }));
@@ -1095,14 +1120,31 @@ export default function VendorProfileForm({ profile, onUpdate }) {
             </div>
             <div className="col-md-6">
               <label className="form-label fw-semibold small text-muted">Business Phone</label>
-              <input
-                type="tel"
-                className="form-control"
-                value={form.phone}
-                onChange={(e) => setForm((c) => ({ ...c, phone: e.target.value }))}
-                placeholder="Phone number"
-                disabled={busy}
-              />
+              <div className="input-group">
+                <select
+                  className="form-select flex-grow-0"
+                  style={{ width: "125px" }}
+                  value={phoneCountryCode}
+                  onChange={(e) => setPhoneCountryCode(e.target.value)}
+                  disabled={busy}
+                  aria-label="Business phone country code"
+                >
+                  {countryCodes.map((c) => (
+                    <option key={`${c.iso}-${c.code}`} value={c.code}>
+                      {c.flag} {c.code}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  className="form-control"
+                  value={form.phone}
+                  onChange={(e) => setForm((c) => ({ ...c, phone: e.target.value.replace(/\D/g, "") }))}
+                  placeholder="Phone number"
+                  disabled={busy}
+                />
+              </div>
             </div>
             <div className="col-12">
               <div className="form-check form-switch p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
@@ -1471,13 +1513,29 @@ export default function VendorProfileForm({ profile, onUpdate }) {
                 </div>
                 <div className="col-12">
                   <label className="form-label fw-semibold small text-muted">Location Phone</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={locationForm.locationPhone}
-                    onChange={(e) => updateLocationField("locationPhone", e.target.value)}
-                    placeholder="e.g. 884763546"
-                  />
+                  <div className="input-group">
+                    <select
+                      className="form-select flex-grow-0"
+                      style={{ width: "125px" }}
+                      value={locationPhoneCountryCode}
+                      onChange={(e) => setLocationPhoneCountryCode(e.target.value)}
+                      aria-label="Location phone country code"
+                    >
+                      {countryCodes.map((c) => (
+                        <option key={`${c.iso}-${c.code}`} value={c.code}>
+                          {c.flag} {c.code}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      className="form-control"
+                      value={locationForm.locationPhone}
+                      onChange={(e) => updateLocationField("locationPhone", e.target.value.replace(/\D/g, ""))}
+                      placeholder="e.g. 884763546"
+                    />
+                  </div>
                 </div>
               </div>
               <div className="mt-4 pt-3 border-top d-flex gap-2">

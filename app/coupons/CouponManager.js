@@ -403,12 +403,17 @@ export default function CouponManager() {
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label>Discount Value (% or Amount) * (1-99%)</label>
+                    <label>Discount Percentage (%) * (1–99%)</label>
                     <input
                       type="text"
-                      placeholder="e.g. 5% or 20%"
+                      inputMode="numeric"
+                      maxLength={2}
+                      placeholder="e.g. 15"
                       value={formData.discount}
-                      onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+                        setFormData({ ...formData, discount: digits });
+                      }}
                       required
                     />
                   </div>
